@@ -1,1 +1,0 @@
-import{M as r}from"./scheduler.ropGePTB.js";function i(){const c=r();return(t,o,a)=>{const n=c.$$.callbacks[t];if(n){const e=new CustomEvent(t,{detail:a});o.dispatchEvent(e),n.slice().forEach(s=>{s.call(c,e)})}}}export{i as c};
