@@ -16,12 +16,10 @@ const firebaseConfig = {
 };
 
 let app;
-if(!getApps().length){
+if (!getApps().length) {
     app = initializeApp(firebaseConfig);
 } else {
     app = getApp();
-    deleteApp(app);
-    app = initializeApp(firebaseConfig);
 }
 
 const auth = getAuth(app);

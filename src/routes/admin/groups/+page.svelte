@@ -192,8 +192,9 @@
                                 </DropdownItem>
                                 <DropdownDivider/>
                                 <DropdownItem
-                                    on:click={() => deleteGroupModal = true}
-                                >
+                                    on:click={() => 
+                                        deleteGroupModal = true
+                                        }>
                                     <div class="flex items-center">
                                         <TrashBinSolid size="sm" class="mr-2" color="red"/>
                                         <span>Eliminar</span>
