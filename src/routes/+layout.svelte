@@ -1,12 +1,12 @@
 <script lang="ts">
 	import '../app.pcss';
-	import { onMount } from 'svelte';
-	import { auth } from '$lib/client/firebase';
+	import { authtest } from '$lib/firebase/firebase';
 	import { authStore } from '../stores/auth';
+	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
 
 	onMount(() => {
-		const unsubscribe = auth.onAuthStateChanged((user) => {
+		const unsubscribe = authtest.onAuthStateChanged((user) => {
 			if (user) {
 				authStore.update((currentUser) => {
 					return {

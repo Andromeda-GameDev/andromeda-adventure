@@ -1,7 +1,6 @@
 import { getDatabase, ref, get, query, orderByChild, equalTo } from "firebase/database";
 import type { Group, Media, Solver, download } from "../../types"
-
-const db = getDatabase();
+import { db } from "../../lib/firebase/firebase"
 
 async function getGroupsByIds(groups: { [key: string]: Group}) {
     const groupRef = ref(db, `groups`);

@@ -1,5 +1,5 @@
 import { writable } from "svelte/store";
-import { auth } from '$lib/client/firebase';
+import { authtest } from '$lib/firebase/firebase';
 import { deleteUser, signInWithPopup } from "firebase/auth";
 import { GoogleAuthProvider, sendPasswordResetEmail, signOut, updatePassword, signInWithEmailAndPassword } from "firebase/auth";
 import { getDatabase, ref, get, remove } from "firebase/database";
@@ -35,8 +35,8 @@ const checkUserRole = async (uid: string) => {
 export const authHandlers = {
     signInWithPopup: async () => {
         const provider = new GoogleAuthProvider();
-        await signInWithPopup(auth, provider);
-        const usersRole = await checkUserRole(auth.currentUser!.uid);
+        await signInWithPopup(authtest, provider);
+        const usersRole = await checkUserRole(authtest.currentUser!.uid);
         authStore.update((store) => {
             return {
                 ...store,
@@ -46,8 +46,8 @@ export const authHandlers = {
     },
 
     signInWithEmail: async (email: string, password: string) => {
-        await signInWithEmailAndPassword(auth, email, password);
-        const usersRole = await checkUserRole(auth.currentUser!.uid);
+        await signInWithEmailAndPassword(authtest, email, password);
+        const usersRole = await checkUserRole(authtest.currentUser!.uid);
         authStore.update((store) => {
             return {
                 ...store,
@@ -57,7 +57,7 @@ export const authHandlers = {
     },
 
     logout: async () => {
-        await signOut(auth);
+        await signOut(authtest);
 
         authStore.update((store) => {
             return {
@@ -72,19 +72,19 @@ export const authHandlers = {
     },
 
     resetPassword: async (email: string) => {
-        await sendPasswordResetEmail(auth, email);
+        await sendPasswordResetEmail(authtest, email);
     },
 
     updatePassword: async (password: string) => {
-        await updatePassword(auth.currentUser!, password);
+        await updatePassword(authtest.currentUser!, password);
     },
 
     deleteAccount: async () => {
         const db = getDatabase();
-        const userRef = ref(db, `roles/${auth.currentUser!.uid}`);
+        const userRef = ref(db, `roles/${authtest.currentUser!.uid}`);
 
         await remove(userRef);
-        await deleteUser(auth.currentUser!);
+        await deleteUser(authtest.currentUser!);
     }
 }
 

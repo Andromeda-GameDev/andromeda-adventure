@@ -1,28 +1,9 @@
-import { getDatabase, ref, query, get, orderByChild, equalTo } from "firebase/database";
+import { getDatabase, ref, get } from "firebase/database";
+import { db } from "../../lib/firebase/firebase";
 import type { Group } from "../../types"
 
-const db = getDatabase();
+//const db = getDatabase();
 
-// async function getGroupsByIds(groups: { [key: string]: Group}) {
-//     const groupRef = ref(db, `groups`);
-//     const groupSnapshot = await get(groupRef);
-//     if (groupSnapshot.exists()){
-//         const data = groupSnapshot.val();
-//         for(const key in groups){
-//             for (const group_id in data){
-//                 if(data[group_id].group_id === groups[key].group_id){
-//                     groups[key].group_uid = group_id;
-//                     groups[key].group_name = data[group_id].group_name;
-//                     groups[key].levels = data[group_id].levels;
-//                 }
-//             }
-//         }
-//     } else {
-//         console.log("No data available - getGroupsByIds");
-//     }
-
-//     return groups;
-// }
 
 async function getAllProgress() {
     const progressRef = ref(db, 'progress');

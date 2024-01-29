@@ -1,8 +1,7 @@
-//import memoize from 'lodash';
-import { initializeApp, getApps, getApp, deleteApp } from 'firebase/app';
-import { getAuth, setPersistence, inMemoryPersistence } from 'firebase/auth';
 import { getDatabase } from "firebase/database";
-
+import { initializeApp, getApps, getApp} from 'firebase/app';
+import { getAuth } from 'firebase/auth';
+// setPersistence(auth, inMemoryPersistence)
 
 const firebaseConfig = {
     apiKey: String(import.meta.env.VITE_API_KEY),
@@ -22,11 +21,14 @@ if (!getApps().length) {
     app = getApp();
 }
 
-const auth = getAuth(app);
-const db = getDatabase();
+
+const authtest = getAuth(app);
+const db = getDatabase(app);
+
+//export default app;
 
 export {
-    app,
-    auth,
     db,
+    app,
+    authtest,
 };
