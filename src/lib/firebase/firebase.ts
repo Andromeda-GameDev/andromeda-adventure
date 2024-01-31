@@ -25,7 +25,7 @@ if (!getApps().length) {
 
 const authtest = getAuth(app);
 const db = getDatabase(app);
-await setPersistence(authtest, browserLocalPersistence);
+//await setPersistence(authtest, browserLocalPersistence);
 
 //export default app;
 
