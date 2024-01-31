@@ -1,9 +1,18 @@
 <script lang="ts">
     import { Students, GlobalValues, dbStatus } from "../../stores/adminData";
-    import { Indicator, Badge,Toggle, Modal, Button, Table, TableBody, TableBodyCell, TableBodyRow, TableHead, TableHeadCell, Input, MultiSelect } from "flowbite-svelte";
+    import { Indicator, Badge,Toggle, Modal, Button, Table, TableBody, TableBodyCell, TableBodyRow, TableHead, TableHeadCell, Input, MultiSelect, Spinner } from "flowbite-svelte";
     import { ExclamationCircleOutline } from 'flowbite-svelte-icons';
     import DashboardCardAdmin from "../../components/DashboardCardAdmin.svelte";
     import { authStore } from "../../stores/auth";
+    import { toggleDataBase, updateToleranceValue, addUsersToDemoGroup, removeUserDemo } from "../../api/Admin/homepage";
+    import Alert from "../../components/Alert.svelte";
+
+    let alert = {
+        visible: false,
+        type: "error",
+        message: "",
+        position: "top-center"
+    };
 
     let db_enabled: boolean = false;
     let students: any[] = [];
@@ -35,11 +44,30 @@
     }
 
     let modalToggleDB: boolean = false;
-    function handleDBToggle() {
+    async function handleDBToggle() {
         if (db_enabled) {
             modalToggleDB = true;
         } else {
             db_enabled = true;
+
+            try {
+                await toggleDataBase(db_enabled);
+
+                alert = {
+                    visible: true,
+                    type: "success",
+                    message: "Base de datos actualizada",
+                    position: "top-center"
+                };
+
+            } catch (error) {
+                alert = {
+                    visible: true,
+                    type: "error",
+                    message: "Error al actualizar la base de datos",
+                    position: "top-center"
+                };
+            }
         }
     }
 
@@ -71,10 +99,108 @@
 
     let modalToggleDemoUser: boolean = false;
 
+    async function handleToggleDB(){
+        try {
+            await toggleDataBase(db_enabled);
+
+            alert = {
+                visible: true,
+                type: "success",
+                message: "Base de datos actualizada",
+                position: "top-center"
+            };
+
+        } catch (error) {
+            alert = {
+                visible: true,
+                type: "error",
+                message: "Error al actualizar la base de datos",
+                position: "top-center"
+            };
+        }
+    }
+
+    async function handleUpdateToleranceValue(newValue: number){
+        try {
+            await updateToleranceValue(newValue);
+
+            alert = {
+                visible: true,
+                type: "success",
+                message: "Valor de tolerancia actualizado",
+                position: "top-center"
+            };
+
+        } catch (error) {
+            alert = {
+                visible: true,
+                type: "error",
+                message: "Error al actualizar el valor de tolerancia",
+                position: "top-center"
+            };
+        }
+    }
+
+    async function handleAddDemoUsers(users_id: string[]){
+        try {
+            await addUsersToDemoGroup(users_id);
+
+            $Students = $Students.map(student => {
+                if (users_id.includes(student.uuid || '')) {
+                    student.demo = true;
+                }
+                return student;
+            });
+
+            alert = {
+                visible: true,
+                type: "success",
+                message: "Usuarios agregados",
+                position: "top-center"
+            };
+
+        } catch (error) {
+            alert = {
+                visible: true,
+                type: "error",
+                message: "Error al agregar usuarios",
+                position: "top-center"
+            };
+        }
+    }
+
+    async function removeDemoFromUser(user_id: string){
+        try {
+            await removeUserDemo(user_id);
+
+            $Students = $Students.map(student => {
+                if (student.uuid === user_id) {
+                    student.demo = false;
+                }
+                return student;
+            });
+
+            alert = {
+                visible: true,
+                type: "success",
+                message: "Usuario eliminado",
+                position: "top-center"
+            };
+
+        } catch (error) {
+            alert = {
+                visible: true,
+                type: "error",
+                message: "Error al eliminar usuario",
+                position: "top-center"
+            };
+        }
+    }
 </script>
 
 
 <div class="main-content">
+    {#if $Students && $GlobalValues && $dbStatus}
     <div class="greeting">
         <h1>Bienvenid@, </h1> 
         {#if name !== ''}
@@ -175,7 +301,11 @@
                                         </TableBodyCell>
                                         <TableBodyCell>
                                             {#if editStates[key]}
-                                                <Button color="green" size="xs" on:click={() => handleUpdate(key)}>Actualizar</Button>
+                                                <Button color="green" size="xs" on:click={() => 
+                                                    {   handleUpdate(key),
+                                                        handleUpdateToleranceValue(globalValues[key])
+                                                    }
+                                                }>Actualizar</Button>
                                                 <Button color="red" size="xs" on:click={() => handleCancel(key)}>Cancelar</Button>
                                             {:else}
                                                 <Button color="alternative" size="xs" on:click={() => handleEdit(key)}>Editar</Button>
@@ -213,7 +343,9 @@
                                             {student.email}
                                         </TableBodyCell>
                                         <TableBodyCell>
-                                            <Button color="red" size="xs">Eliminar</Button>
+                                            <Button color="red" size="xs"
+                                                on:click={() => removeDemoFromUser(student.uuid)}
+                                            >Eliminar</Button>
                                         </TableBodyCell>
                                     </TableBodyRow>
                                 {/each}
@@ -224,13 +356,21 @@
             </div>
         </div>
     </div>
+    {:else}
+        <div class="spinner-container">
+            <Spinner color="green"/>
+        </div>
+    {/if}
 </div>
 
 <Modal bind:open={modalToggleDB} autoclose outsideclose size="xs">
     <div class="text-center">
         <ExclamationCircleOutline class="mx-auto mb-4 text-gray-400 w-12 h-12 dark:text-gray-200" />
         <h3 class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">Seguro quieres desactivar la base de datos?</h3>
-        <Button color="red" class="me-2" on:click={() => {db_enabled = false}}>Sí, seguro</Button>
+        <Button color="red" class="me-2" on:click={() => {db_enabled = false,
+            modalToggleDB = false,
+            handleToggleDB()
+        }}>Sí, seguro</Button>
         <Button color="alternative" on:click={handleCancelDBToggle}>No, cancelar</Button>
       </div>
 </Modal>
@@ -244,8 +384,18 @@
             class="mb-4"
         ></MultiSelect>
     </div>
-    <Button color="blue" class="ml-6" on:click={() => {modalToggleDemoUser = false}}>Agregar</Button>
+    <Button color="blue" class="ml-6" on:click={() => 
+        {modalToggleDemoUser = false, 
+        handleAddDemoUsers(selected)
+        }}
+        >Agregar</Button>
 </Modal>
+
+<Alert
+    alertType={alert.type}
+    alertMessage={alert.message}
+    alertVisible={alert.visible}
+/>
 
 
 <style>
@@ -376,17 +526,25 @@
     }
 
     .bottom-left-section {
-        height: 100%;
         width: calc(50% - 10px);
         display: flex;
         flex-direction: column;
+        background-color: white;
+        border-radius: 1rem;
+        box-shadow: 0 0 10px 0 rgba(0,0,0,0.1);
+        margin-top: 1.5rem;
+        height: 10rem;
     }
 
     .bottom-right-section {
-        height: 100%;
         width: calc(50% - 10px); 
         display: flex;
         flex-direction: column;
+        background-color: white;
+        border-radius: 1rem;
+        box-shadow: 0 0 10px 0 rgba(0,0,0,0.1);
+        margin-top: 1.5rem;
+        height: 10rem;
     }
 
     .demo-users-header {
@@ -401,6 +559,13 @@
         padding: 2rem;
         min-height: 360px;
         max-height: 360px;
+    }
+
+    .spinner-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
     }
 
 </style>

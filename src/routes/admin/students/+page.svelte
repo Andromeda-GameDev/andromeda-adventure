@@ -65,6 +65,17 @@
     async function handleGroupChange(student_uuid: string, event: Event) {
         try {
             await changeGroup(student_uuid, (event.target as HTMLInputElement).value);
+
+            $Students = $Students.map(student => {
+                if(student.uuid === student_uuid) {
+                    return {
+                        ...student,
+                        group_id: (event.target as HTMLInputElement).value
+                    }
+                }
+                return student;
+            });
+
             alert = {
                 visible: true,
                 type: "success",

@@ -1,21 +1,23 @@
 <script lang="ts">
 	import '../app.pcss';
 	import { authtest } from '$lib/firebase/firebase';
-	import { authStore } from '../stores/auth';
+	import { authStore, checkUserRole } from '../stores/auth';
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
 
 	onMount(() => {
-		const unsubscribe = authtest.onAuthStateChanged((user) => {
+		const unsubscribe = authtest.onAuthStateChanged( async (user) => {
 			if (user) {
+
+				const role = await checkUserRole(user.uid);
+
 				authStore.update((currentUser) => {
 					return {
 						...currentUser,
 						isLogged: true,
 						uid: user.uid,
 						email: user.email,
-						role: currentUser.role,
-						name: user.displayName,
+						role: role,
 					}
 				});
 			} else {
@@ -27,6 +29,7 @@
 					window.location.href = '/';
 				} 
 			}
+
 		});
 
 		return () => {

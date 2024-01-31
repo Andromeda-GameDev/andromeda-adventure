@@ -16,11 +16,20 @@
         message: "",
     };
 
-    function handleGoogleLogin() {
+    async function handleGoogleLogin() {
         try {
-            authHandlers.signInWithPopup()
+            await authHandlers.signInWithPopup();
+
         } catch (error) {
-            console.log(error);
+            const firebaseError = error as FirebaseError;
+
+            alert = {
+                visible: true,
+                type: "error",
+                message: firebaseError.code,
+            };
+
+            return;
         }
     }
 

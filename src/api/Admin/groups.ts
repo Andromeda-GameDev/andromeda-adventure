@@ -33,14 +33,14 @@ export async function createGroup(group_name: string){
     }
 }
 
-export async function addProffessorsToGroup(group_id: string, professors: Record<string, string>){
+export async function addProffessorsToGroup(group_id: string, professors: Record<string, string>[]){
     const ref_group_professor = push(ref(db, `group_professors/`));
 
-    for (const [key, value] of Object.entries(professors)) {
+    for (const professor of professors){
         set(ref_group_professor, {
             group_id: group_id,
-            professor_id: key,
-            professor_email: value,
+            professor_id: professor.professor_id,
+            professor_email: professor.professor_email,
         });
     }
 }

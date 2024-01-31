@@ -13,20 +13,20 @@ type User = {
 };
 
 export const authStore = writable<User>({
-    isLogged: false,
-    uid: null,
-    email: null,
-    role: null,
-    name: null,
+    isLogged: false as boolean,
+    uid: null as string | null,
+    email: null as string | null,
+    role: null as string | null,
+    name: null as string | null,
 });
 
-const checkUserRole = async (uid: string) => {
+export const checkUserRole = async (uid: string) => {
     const database = getDatabase();
     const userRef = ref(database, `roles/${uid}`);
     const snapshot = await get(userRef);
 
     if (snapshot.exists()) {
-        return snapshot.val().role;
+        return snapshot.val().role as string;
     } else {
         return null;
     }
@@ -36,24 +36,11 @@ export const authHandlers = {
     signInWithPopup: async () => {
         const provider = new GoogleAuthProvider();
         await signInWithPopup(authtest, provider);
-        const usersRole = await checkUserRole(authtest.currentUser!.uid);
-        authStore.update((store) => {
-            return {
-                ...store,
-                role: usersRole,
-            };
-        });
     },
 
     signInWithEmail: async (email: string, password: string) => {
         await signInWithEmailAndPassword(authtest, email, password);
-        const usersRole = await checkUserRole(authtest.currentUser!.uid);
-        authStore.update((store) => {
-            return {
-                ...store,
-                role: usersRole,
-            };
-        });
+        //const usersRole = await checkUserRole(authtest.currentUser!.uid);
     },
 
     logout: async () => {

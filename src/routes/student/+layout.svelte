@@ -9,30 +9,25 @@
     import { Groups, Students, FetchedData } from "../../stores/professorData";
     import type { Student } from "../../types";
 
-    export let data;
-    let groupsPromise = data.groups;
-    let studentsPromise = data.students;
-    let mediaPromise = data.media;
+    // onMount( async () => {
+    //     const [groups, students, media] = await Promise.all([groupsPromise, studentsPromise, mediaPromise]);
+    //     if(groups) {
+    //         Groups.set(Object.values(groups));
+    //     }
 
-    onMount( async () => {
-        const [groups, students, media] = await Promise.all([groupsPromise, studentsPromise, mediaPromise]);
-        if(groups) {
-            Groups.set(Object.values(groups));
-        }
+    //     if(students) {
+    //         Students.set(Object.values(students).filter(student => student !== null) as Student[]);
+    //     }
 
-        if(students) {
-            Students.set(Object.values(students).filter(student => student !== null) as Student[]);
-        }
-
-        if(media) {
-            FetchedData.set(media);
-        }
-    });
+    //     if(media) {
+    //         FetchedData.set(media);
+    //     }
+    // });
 
     $ : {
         if($authStore) {
             if($authStore.role){
-                if($authStore.role !== 'professor' || $authStore.role === null) {
+                if($authStore.role !== 'student' || $authStore.role === null) {
                     if(browser) {
                         goto('/');
                     }
@@ -60,8 +55,8 @@
     }
 
     $: activeUrl = $page.url.pathname;
-    let activeClass = 'flex items-center p-2 text-base font-normal bg-purple-200 dark:bg-purple-700 rounded-lg dark:text-white hover:bg-purple-100 dark:hover:bg-gray-700 border-r-4 border-purple-500';
-    let nonActiveClass = 'flex items-center p-2 text-base font-normal text-black-900 rounded-lg dark:text-white hover:bg-purple-100 dark:hover:bg-green-700';
+    let activeClass = 'flex items-center p-2 text-base font-normal bg-sky-200 dark:bg-sky-700 rounded-lg dark:text-white hover:bg-sky-100 dark:hover:bg-gray-700 border-r-4 border-sky-500';
+    let nonActiveClass = 'flex items-center p-2 text-base font-normal text-black-900 rounded-lg dark:text-white hover:bg-sky-100 dark:hover:bg-green-700';
     
 </script>
 
@@ -77,27 +72,12 @@
                 <Sidebar {activeUrl} {activeClass} {nonActiveClass} class="w-full">
                     <SidebarWrapper class="bg-white">
                         <SidebarGroup class="bg-white space-y-3">
-                            <SidebarItem label="Inicio" href="/professor">
+                            <SidebarItem label="Inicio" href="/student">
                                 <svelte:fragment slot="icon">
                                     <GridSolid/>
                                 </svelte:fragment>
                             </SidebarItem>
-                            <SidebarItem label="Grupos" href="/professor/groups">
-                                <svelte:fragment slot="icon">
-                                    <UsersSolid/>
-                                </svelte:fragment>
-                            </SidebarItem>
-                            <SidebarItem label="Estadísticas" href="/professor/statistics">
-                                <svelte:fragment slot="icon">
-                                    <ChartLineUpSolid/>
-                                </svelte:fragment>
-                            </SidebarItem>
-                            <SidebarItem label="Solvers" href="/professor/solvers">
-                                <svelte:fragment slot="icon">
-                                    <WandMagicSparklesOutline/>
-                                </svelte:fragment>
-                            </SidebarItem>
-                            <SidebarItem label="Ajustes" href="/professor/settings">
+                            <SidebarItem label="Ajustes" href="/student/settings">
                                 <svelte:fragment slot="icon">
                                     <UserSettingsSolid/>
                                 </svelte:fragment>
@@ -157,7 +137,7 @@
         font-size: 1.2rem;
         padding-left: 1rem;
         padding-right: 1rem;
-        color: #9630df;
+        color: #298be2;
         font-weight: 800;
         width: 100%;
     }

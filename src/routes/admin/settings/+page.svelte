@@ -5,6 +5,9 @@
     import { ExclamationCircleOutline, EyeOutline, EyeSlashOutline } from 'flowbite-svelte-icons';
     import { authHandlers } from '../../../stores/auth';
     import type { FirebaseError } from '../../../types';
+    import { authStore } from '../../../stores/auth';
+
+    $: user_email = $authStore.email ?? '';
 
     let alert = {
         visible: false,
@@ -36,11 +39,14 @@
             alert = {
                 visible: true,
                 type: "error",
-                message: firebaseError.message,
+                message: firebaseError.code,
             }
 
         }
     }
+
+    let oldPassword = '';
+    let showOldPassword = false;
 
     let password = '';
     let showPassword = false;
@@ -73,10 +79,33 @@
         } catch (error) {
             let firebaseError = error as FirebaseError;
 
-            alert = {
-                visible: true,
-                type: "error",
-                message: firebaseError.message,
+            if(firebaseError.code == 'auth/requires-recent-login') {
+                try {
+                    await authHandlers.signInWithEmail(user_email, oldPassword);
+                    await authHandlers.updatePassword(password);
+
+                    alert = {
+                        visible: true,
+                        type: "success",
+                        message: "Contraseña actualizada correctamente.",
+                    }
+
+                } catch (error) {
+                    
+                    let firebaseError = error as FirebaseError;
+
+                    alert = {
+                        visible: true,
+                        type: "error",
+                        message: firebaseError.code,
+                    }
+                }
+            } else {
+                alert = {
+                    visible: true,
+                    type: "error",
+                    message: firebaseError.code,
+                }
             }
 
             isLoading = false;
@@ -94,6 +123,18 @@
             <hr class="solid">
         </div>
         <div class="change-password-input">
+            <div class="flex items-center gap-2">
+                <Input type={showOldPassword ? 'text' : 'password'} id="old-password" placeholder="Contraseña actual" class="focus:ring-blue-500 focus:border-blue-500"
+                bind:value={oldPassword}>
+                    <button slot="left" class="pointer-events-auto" on:click={() => showOldPassword = !showOldPassword}>
+                        {#if showOldPassword}
+                            <EyeOutline class="w-5 h-5 text-gray-400 dark:text-gray-200"/>
+                        {:else}
+                            <EyeSlashOutline class="w-5 h-5 text-gray-400 dark:text-gray-200"/>
+                        {/if}
+                    </button>
+                </Input>
+            </div>
             <div class="flex items-center gap-2">
                 <Input type={showPassword ? 'text' : 'password'} id="password" placeholder="Nueva contraseña" class="focus:ring-blue-500 focus:border-blue-500"
                 color={isPasswordValid ? 'green' : 'base'}

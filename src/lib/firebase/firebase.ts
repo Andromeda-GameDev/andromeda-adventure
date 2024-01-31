@@ -1,6 +1,7 @@
 import { getDatabase } from "firebase/database";
 import { initializeApp, getApps, getApp} from 'firebase/app';
 import { getAuth } from 'firebase/auth';
+import { setPersistence, browserLocalPersistence } from "firebase/auth";
 // setPersistence(auth, inMemoryPersistence)
 
 const firebaseConfig = {
@@ -24,6 +25,7 @@ if (!getApps().length) {
 
 const authtest = getAuth(app);
 const db = getDatabase(app);
+await setPersistence(authtest, browserLocalPersistence);
 
 //export default app;
 

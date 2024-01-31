@@ -1,9 +1,6 @@
-import { getDatabase, ref, get } from "firebase/database";
+import { ref, get } from "firebase/database";
 import { db } from "../../lib/firebase/firebase";
-import type { Group } from "../../types"
-
-//const db = getDatabase();
-
+import type { Group } from "../../types";
 
 async function getAllProgress() {
     const progressRef = ref(db, 'progress');

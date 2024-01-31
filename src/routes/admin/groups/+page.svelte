@@ -148,6 +148,122 @@
         }
     }
 
+    async function handleAddProfessorsToGroup() {
+        try {
+
+            // construct list of records Record<string, string> [professor_id, professor_email]
+            let professorsToAdd: Record<string, string>[] = [];
+            selectedProfessors.forEach(professor_id => {
+                let professor: Professor | undefined = professors.find(prof => prof.uuid == professor_id);
+                if(professor){
+                    professorsToAdd.push({
+                        professor_id: professor_id,
+                        professor_email: professor.email
+                    });
+                }
+            });
+
+            await addProffessorsToGroup(currentGroupID, professorsToAdd);
+
+            $Groups = [...$Groups as Group[]].map(group => {
+                if(group.group_id == currentGroupID){
+                    return {
+                        ...group,
+                        professors_ids: [...group.professors_ids, ...selectedProfessors]
+                    }
+                }else{
+                    return group;
+                }
+            });
+
+            alert = {
+                visible: true,
+                type: "success",
+                message: "Profesores agregados correctamente",
+                position: "top-center"
+            }
+
+            selectedProfessors = [];
+
+        } catch (error) {
+            alert = {
+                visible: true,
+                type: "error",
+                message: "Error al agregar los profesores",
+                position: "top-center"
+            }
+        }
+    }
+
+
+    async function handleDeleteProfessorFromGroup(professor_uid: string, group_id: string){
+        try {
+            await deleteProfessorFromGroup(professor_uid, group_id);
+
+            $Groups = [...$Groups as Group[]].map(group => {
+                if(group.group_id == group_id){
+                    return {
+                        ...group,
+                        professors_ids: group.professors_ids.filter(professor => professor != professor_uid)
+                    }
+                }else{
+                    return group;
+                }
+            });
+
+            moreGroupModal = false;
+
+            alert = {
+                visible: true,
+                type: "success",
+                message: "Profesor eliminado correctamente",
+                position: "top-center"
+            }
+        } catch (error) {
+            alert = {
+                visible: true,
+                type: "error",
+                message: "Error al eliminar el profesor",
+                position: "top-center"
+            }
+        }
+    }
+
+    async function handleDeleteStudentFromGroup(student_id: string){
+        try {
+            await deleteStudentFromGroup(student_id);
+
+            // look for student in students store and update group_id to ''
+            $Students = [...$Students as Student[]].map(student => {
+                if(student.uuid == student_id){
+                    return {
+                        ...student,
+                        group_id: ''
+                    }
+                }else{
+                    return student;
+                }
+            });
+
+            moreGroupModal = false;
+
+            alert = {
+                visible: true,
+                type: "success",
+                message: "Alumno eliminado correctamente",
+                position: "top-center"
+            }
+        } catch (error) {
+            alert = {
+                visible: true,
+                type: "error",
+                message: "Error al eliminar el alumno",
+                position: "top-center"
+            }
+        }
+    
+    }
+
 
 </script>
 
@@ -193,7 +309,10 @@
                                 <DropdownDivider/>
                                 <DropdownItem
                                     on:click={() => 
-                                        deleteGroupModal = true
+                                        {
+                                            deleteGroupModal = true
+                                            currentGroupID = group.group_id;
+                                        }
                                         }>
                                     <div class="flex items-center">
                                         <TrashBinSolid size="sm" class="mr-2" color="red"/>
@@ -260,8 +379,7 @@
                     <div slot="footer" class="flex justify-center bg-gray-200">
                         <Button variant="outlined" size="xs" class="bg-blue-500 hover:bg-blue-400 w-9/12 self-center mt-3 mb-3" 
                         on:click={() => {
-                            console.log(selectedProfessors);
-                            selectedProfessors = [];
+                            handleAddProfessorsToGroup();
                             moreGroupModal = false;
                         }}
                     >Agregar</Button>
@@ -284,10 +402,10 @@
                                 <TableBodyCell>
                                     <Button variant="outlined" size="xs" class="bg-red-500 hover:bg-red-400"
                                         on:click={() => {
-                                            // deleteProfessorFromGroup(
-                                            //     professors.find(prof => prof.uuid == professor)?.uuid || '',
-                                            //     currentGroupID
-                                            // )
+                                            handleDeleteProfessorFromGroup(
+                                                professors.find(prof => prof.uuid == professor)?.uuid || '',
+                                                currentGroupID
+                                            )
                                         }}
                                     >Eliminar</Button>
                                 </TableBodyCell>
@@ -316,7 +434,9 @@
                             <TableBodyCell>{student.name + ' ' + student.lastName}</TableBodyCell>
                             <TableBodyCell>{student.email}</TableBodyCell>
                             <TableBodyCell>
-                                <Button variant="outlined" size="xs" class="bg-red-500 hover:bg-red-400">Eliminar</Button>
+                                <Button variant="outlined" size="xs" class="bg-red-500 hover:bg-red-400"
+                                    on:click={() => handleDeleteStudentFromGroup(student.uuid || '')}
+                                >Eliminar</Button>
                             </TableBodyCell>
                         </TableBodyRow>
                     {/if}
@@ -354,8 +474,9 @@
     </div>
     <div class="modal-buttons">
         <Button variant="outlined" size="xs" class="bg-blue-500 hover:bg-blue-400"
+            on:click={() => handleDeleteGroup()}
         >Eliminar</Button>
-        <Button variant="outlined" size="xs" class="bg-red-500 hover:bg-red-400" on:click={() => deleteGroupModal = false}>Cancelar</Button>
+        <Button variant="outlined" size="xs" class="bg-red-500 hover:bg-red-400" on:click={() => {deleteGroupModal = false, currentGroupID = ""}}>Cancelar</Button>
     </div>
 </Modal>
 

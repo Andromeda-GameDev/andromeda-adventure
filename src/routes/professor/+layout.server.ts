@@ -1,4 +1,4 @@
-import { getDatabase, ref, get, query, orderByChild, equalTo } from "firebase/database";
+import { ref, get, query, orderByChild, equalTo } from "firebase/database";
 import type { Group, Media, Solver, download } from "../../types"
 import { db } from "../../lib/firebase/firebase"
 

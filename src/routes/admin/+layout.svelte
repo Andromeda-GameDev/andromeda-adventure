@@ -8,6 +8,7 @@
 	import { page } from "$app/stores";
     import { Groups, Students, Professors, GlobalValues } from "../../stores/adminData";
     import type { Student, Professor } from "../../types";
+    import { authStore } from "../../stores/auth";
 
     export let data;
     let groupsPromise = data.groups;
@@ -33,15 +34,19 @@
             GlobalValues.set(globalValues);
         }
 
-        // check for role
-        // if($authStore.role) {
-        //     if($authStore.role !== 'professor') {
-        //         authHandlers.logout();
-        //         goto('/');
-        //     }
-        // }
-
     });
+
+    $ : {
+        if($authStore) {
+            if($authStore.role){
+                if($authStore.role !== 'admin' || $authStore.role === null) {
+                    if(browser) {
+                        goto('/');
+                    }
+                }
+            }
+        }
+    }
 
     let currentDate: string;
 
