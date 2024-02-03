@@ -10,6 +10,10 @@
     let studentId = $page.params.studentId;
     $: studentId = $page.params.studentId;
 
+    let levelId = $page.params.levelId;
+    $: levelId = $page.params.levelId;
+
+
     let student: Student | undefined = undefined;
 
     $: {
@@ -30,7 +34,7 @@
             </BreadcrumbItem>
             {#if student && activeUrl !== '/professor/statistics' && activeUrl !== '/professor/statistics/'   }
             <BreadcrumbItem>
-                {student.name + ' ' + student.lastName}
+                {student.name + ' ' + student.lastName + " - " + "Nivel " + levelId}
             </BreadcrumbItem>
             {/if}
         </Breadcrumb>

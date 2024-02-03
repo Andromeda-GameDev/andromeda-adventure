@@ -3,6 +3,7 @@
     import { Students } from '../../../../../stores/professorData'
     import type { Student } from "../../../../../types";
     import StudentFirstLevelTable from '../../../../../components/StudentFirstLevelTable.svelte';
+    import StudentSecondLevelTable from '../../../../../components/StudentSecondLevelTable.svelte';
 
     let { studentId, levelId } = $page.params;
     let student: Student | undefined = undefined;
@@ -17,11 +18,16 @@
             level = levelId;
         }
     }
-
 </script>
 
 <div class="table-container">
-    <StudentFirstLevelTable student={student} isStudent={false} />    
+    {#if levelId === "1"}
+        <StudentFirstLevelTable student={student} isStudent={false} />    
+    {:else if levelId === "2"}
+        <StudentSecondLevelTable student={student} isStudent={false} />
+    {:else}
+        <p> Level 3</p>
+    {/if}
 </div>
 
 <style>

@@ -310,7 +310,7 @@ function exportStudentTimeAndSessionsToExcel() {
                 <option value="2"> Nivel 2</option>
             </Select>
             <Button color="green" variant="outline" size="sm"
-                on:click={exportStudentTimeAndSessionsToExcel}
+                on:click={exportToExcel}
             >
                 Exportar
                 <FileExportSolid class="ml-3" size="sm"/>
