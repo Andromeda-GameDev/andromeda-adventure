@@ -1,7 +1,7 @@
 <script lang="ts">
 	import '../app.pcss';
 	import { authtest } from '$lib/firebase/firebase';
-	import { authStore, checkUserRole } from '../stores/auth';
+	import { authStore, checkUserGroup, checkUserRole } from '../stores/auth';
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
 
@@ -10,6 +10,11 @@
 			if (user) {
 
 				const role = await checkUserRole(user.uid);
+				let group_id: string = '';
+
+				if (role === 'student'){
+					group_id = await checkUserGroup(user.uid) ?? '';
+				}
 
 				authStore.update((currentUser) => {
 					return {
@@ -18,6 +23,7 @@
 						uid: user.uid,
 						email: user.email,
 						role: role,
+						group_id: group_id !== '' ? group_id : null
 					}
 				});
 			} else {

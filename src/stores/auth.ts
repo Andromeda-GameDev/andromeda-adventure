@@ -10,6 +10,7 @@ type User = {
     email: string | null;
     role?: string | null;
     name: string | null;
+    group_id?: string | null;
 };
 
 export const authStore = writable<User>({
@@ -18,6 +19,7 @@ export const authStore = writable<User>({
     email: null as string | null,
     role: null as string | null,
     name: null as string | null,
+    group_id: null as string | null,
 });
 
 export const checkUserRole = async (uid: string) => {
@@ -32,6 +34,18 @@ export const checkUserRole = async (uid: string) => {
     }
 }
 
+export const checkUserGroup = async (uid: string) => {
+    const database = getDatabase();
+    const userRef = ref(database, `users/${uid}`);
+    const snapshot = await get(userRef);
+
+    if (snapshot.exists()) {
+        return snapshot.val().group as string;
+    } else {
+        return null;
+    }
+}
+
 export const authHandlers = {
     signInWithPopup: async () => {
         const provider = new GoogleAuthProvider();
@@ -40,7 +54,6 @@ export const authHandlers = {
 
     signInWithEmail: async (email: string, password: string) => {
         await signInWithEmailAndPassword(authtest, email, password);
-        //const usersRole = await checkUserRole(authtest.currentUser!.uid);
     },
 
     logout: async () => {

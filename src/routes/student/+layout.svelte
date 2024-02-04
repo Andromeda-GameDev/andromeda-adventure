@@ -6,23 +6,19 @@
     import { GridSolid, UsersSolid, ChartLineUpSolid, WandMagicSparklesOutline, UserSettingsSolid } from 'flowbite-svelte-icons';
     import { goto } from '$app/navigation';
 	import { page } from "$app/stores";
-    import { Groups, Students, FetchedData } from "../../stores/professorData";
-    import type { Student } from "../../types";
+    import { FetchedData } from "../../stores/studentData";
 
-    // onMount( async () => {
-    //     const [groups, students, media] = await Promise.all([groupsPromise, studentsPromise, mediaPromise]);
-    //     if(groups) {
-    //         Groups.set(Object.values(groups));
-    //     }
+    export let data;
+    let mediaPromise = data.media;
 
-    //     if(students) {
-    //         Students.set(Object.values(students).filter(student => student !== null) as Student[]);
-    //     }
+    onMount( async () => {
+        const [media] = await Promise.all([mediaPromise]);
 
-    //     if(media) {
-    //         FetchedData.set(media);
-    //     }
-    // });
+
+        if(media) {
+            FetchedData.set(media);
+        }
+    });
 
     $ : {
         if($authStore) {
@@ -75,6 +71,11 @@
                             <SidebarItem label="Inicio" href="/student">
                                 <svelte:fragment slot="icon">
                                     <GridSolid/>
+                                </svelte:fragment>
+                            </SidebarItem>
+                            <SidebarItem label="Estadísticas" href="/student/statistics">
+                                <svelte:fragment slot="icon">
+                                    <ChartLineUpSolid/>
                                 </svelte:fragment>
                             </SidebarItem>
                             <SidebarItem label="Ajustes" href="/student/settings">
