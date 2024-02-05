@@ -2,7 +2,7 @@
     import { authStore } from '../../../stores/auth';
     import type { Group, Student } from '../../../types';
     import { Groups, Students } from '../../../stores/adminData';
-    import { Button, Select, Table, TableBody, TableBodyCell, TableHead, TableBodyRow, TableHeadCell, TableSearch, Badge } from 'flowbite-svelte'
+    import { Button, Select, Table, TableBody, TableBodyCell, TableHead, TableBodyRow, TableHeadCell, TableSearch, Badge, Modal, Tabs, TabItem, Dropdown, DropdownItem, Checkbox} from 'flowbite-svelte'
     import { FileExportSolid, ArrowLeftOutline, ArrowRightOutline, FileSearchSolid } from 'flowbite-svelte-icons';
     import { goto } from '$app/navigation';
     import * as XLSX from 'xlsx';
@@ -17,12 +17,14 @@
         }
 
         if ($Groups.length > 0 && currentUserUid) {
-            professorGroups = $Groups.filter(group => group.professors_ids.includes(currentUserUid as string));
+            professorGroups = $Groups
         }
     }
 
     let selectedGroup = 'General';
     let selectedLevel = '1';
+    let selectedLevelToExportData = '1';
+    let selectedLevelToExportTiming = '1';
 
 
     let currentPage: number = 1;
@@ -57,6 +59,8 @@
     }
     
     $ : selectedLevel = '1';
+    $ : selectedLevelToExportData = '1';
+    $ : selectedLevelToExportTiming = '1';
 
     // sorting
     let sortDirection = 1;
@@ -161,83 +165,140 @@
     function exportToExcel(){
         const excelRows: ExcelRow[] = [];
         let studentsToExport: Student[] = [];
-        if(selectedGroup === 'General'){
+        if(selectedGroupsCheckbox.length === 1 && selectedGroupsCheckbox[0] === 'General'){
             studentsToExport = filteredStudents;
         } else {
-            studentsToExport = filteredStudents.filter(student => student.group_id === selectedGroup);
+            //studentsToExport = filteredStudents.filter(student => student.group_id === selectedGroup);
+            studentsToExport = filteredStudents.filter(student => selectedGroupsCheckbox.includes(student.group_id));
         }
 
+        if(selectedLevelToExportData === '1'){
+            for(let student of studentsToExport){
+                const levelData = student.progress['level_' + selectedLevelToExportData];
+                if(levelData){
+                    for(let gameSessionKey of Object.keys(levelData)){
+                        const gameSessionData = levelData[gameSessionKey];
+                        const gameSessionKeySplitted = parseGameSessionKey(gameSessionKey);
+                        
+                        if(gameSessionData.data && gameSessionData.sections){
+                            for(let sectionKey of Object.keys(gameSessionData.sections)){
+                                const sectionData = gameSessionData.sections[sectionKey];
+                                if(sectionData){
+                                    const excelRow: ExcelRow = {
+                                        name: student.name + ' ' + student.lastName,
+                                        email: student.email,
+                                        group: $Groups.find(group => group.group_id === student.group_id)?.group_name || '',
+                                        level: 'Nivel ' + selectedLevel,
+                                        date: gameSessionKeySplitted.date,
+                                        time: gameSessionKeySplitted.time,
+                                        section: sectionKey.split('_')[1], // assuming sectionKey is in the format 'section_X'
+                                        attempts: sectionData.attempts,
+                                        score: sectionData.score,
+                                        timeInSection: sectionData.time,
+                                        acidSpeed: gameSessionData.data.acidSpeed,
+                                        acidTime: gameSessionData.data.acidTime,
+                                        g: gameSessionData.data.g,
+                                        m1: gameSessionData.data.m1,
+                                        m2: gameSessionData.data.m2,
+                                        surface: gameSessionData.data.surface,
+                                        v0: gameSessionData.data.v0,
+                                        v1: gameSessionData.data.v1,
+                                        v2: gameSessionData.data.v2,
+                                        studentAnswer: sectionData.listResults ? getStudentAnswer(sectionData.listResults) : 0,
+                                        isCorrect: sectionData.listResults ? isCorrect(getStudentAnswer(sectionData.listResults), getCorrectAnswerLevel_1(gameSessionData.data, sectionKey), 0.1) : false,
+                                        correctAnswer: sectionData.listResults ? getCorrectAnswerLevel_1(gameSessionData.data, sectionKey) : 0
+                                    }
+
+                                    excelRows.push(excelRow);
+                                }
+                            }
+                        } else {
+                            const excelRow: ExcelRow = {
+                                name: student.name + ' ' + student.lastName,
+                                email: student.email,
+                                group: $Groups.find(group => group.group_id === student.group_id)?.group_name || '',
+                                level: 'Nivel ' + selectedLevel,
+                                date: gameSessionKeySplitted.date,
+                                time: gameSessionKeySplitted.time,
+                                section: 'N/A',
+                                attempts: 0,
+                                score: 0,
+                                timeInSection: 0,
+                                acidSpeed: 0,
+                                acidTime: 0,
+                                g: 0,
+                                m1: 0,
+                                m2: 0,
+                                surface: 0,
+                                v0: 0,
+                                v1: 0,
+                                v2: 0,
+                                studentAnswer: 0,
+                                isCorrect: false,
+                                correctAnswer: 0
+                            }
+
+                            excelRows.push(excelRow);
+                        }
+                    }
+                }
+            }
+
+            const worksheet = XLSX.utils.json_to_sheet(excelRows);  
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Estudiantes');
+            const date = new Date();
+            const dateString = date.getDate() + '-' + (date.getMonth() + 1) + '-' + date.getFullYear();
+            const fileName = 'estudiantes_' + dateString + '.xlsx';
+            XLSX.writeFile(workbook, fileName);
+        } else if(selectedLevelToExportData === "2"){
+            console.log('Exporting level 2');
+        }
+}
+
+function exportStudentTimeAndSessionsToExcel() {
+    const excelRows = [];
+    let studentsToExport: Student[] = [];
+
+    if(selectedGroupsCheckboxTiming.length === 1 && selectedGroupsCheckboxTiming[0] === 'General'){
+        studentsToExport = filteredStudents;
+    } else {
+        studentsToExport = filteredStudents.filter(student => selectedGroupsCheckboxTiming.includes(student.group_id));
+    }
+
+    if(selectedLevelToExportTiming === '1'){
         for(let student of studentsToExport){
-            const levelData = student.progress['level_' + selectedLevel];
-            if(levelData){
+            // Skip students without a group
+            if(!student.group_id) {
+                continue;
+            }
+            
+            let totalTime = 0;
+            let gameSessionsCount = 0;
+            for(let levelKey of Object.keys(student.progress)){
+                const levelData = student.progress[levelKey];
                 for(let gameSessionKey of Object.keys(levelData)){
                     const gameSessionData = levelData[gameSessionKey];
-                    const gameSessionKeySplitted = parseGameSessionKey(gameSessionKey);
-                    
                     if(gameSessionData.data && gameSessionData.sections){
                         for(let sectionKey of Object.keys(gameSessionData.sections)){
                             const sectionData = gameSessionData.sections[sectionKey];
                             if(sectionData){
-                                const excelRow: ExcelRow = {
-                                    name: student.name + ' ' + student.lastName,
-                                    email: student.email,
-                                    group: $Groups.find(group => group.group_id === student.group_id)?.group_name || '',
-                                    level: 'Nivel ' + selectedLevel,
-                                    date: gameSessionKeySplitted.date,
-                                    time: gameSessionKeySplitted.time,
-                                    section: sectionKey.split('_')[1], // assuming sectionKey is in the format 'section_X'
-                                    attempts: sectionData.attempts,
-                                    score: sectionData.score,
-                                    timeInSection: sectionData.time,
-                                    acidSpeed: gameSessionData.data.acidSpeed,
-                                    acidTime: gameSessionData.data.acidTime,
-                                    g: gameSessionData.data.g,
-                                    m1: gameSessionData.data.m1,
-                                    m2: gameSessionData.data.m2,
-                                    surface: gameSessionData.data.surface,
-                                    v0: gameSessionData.data.v0,
-                                    v1: gameSessionData.data.v1,
-                                    v2: gameSessionData.data.v2,
-                                    studentAnswer: sectionData.listResults ? getStudentAnswer(sectionData.listResults) : 0,
-                                    isCorrect: sectionData.listResults ? isCorrect(getStudentAnswer(sectionData.listResults), getCorrectAnswerLevel_1(gameSessionData.data, sectionKey), 0.1) : false,
-                                    correctAnswer: sectionData.listResults ? getCorrectAnswerLevel_1(gameSessionData.data, sectionKey) : 0
-                                }
-
-                                excelRows.push(excelRow);
+                                totalTime += sectionData.time;
+                                gameSessionsCount++;
                             }
                         }
-                    } else {
-                        const excelRow: ExcelRow = {
-                            name: student.name + ' ' + student.lastName,
-                            email: student.email,
-                            group: $Groups.find(group => group.group_id === student.group_id)?.group_name || '',
-                            level: 'Nivel ' + selectedLevel,
-                            date: gameSessionKeySplitted.date,
-                            time: gameSessionKeySplitted.time,
-                            section: 'N/A',
-                            attempts: 0,
-                            score: 0,
-                            timeInSection: 0,
-                            acidSpeed: 0,
-                            acidTime: 0,
-                            g: 0,
-                            m1: 0,
-                            m2: 0,
-                            surface: 0,
-                            v0: 0,
-                            v1: 0,
-                            v2: 0,
-                            studentAnswer: 0,
-                            isCorrect: false,
-                            correctAnswer: 0
-                        }
-
-                        excelRows.push(excelRow);
                     }
                 }
             }
+            const excelRow = {
+                name: student.name + ' ' + student.lastName,
+                email: student.email,
+                group: $Groups.find(group => group.group_id === student.group_id)?.group_name || '',
+                'Tiempo Total (min)' : Math.round(totalTime / 60),
+                NumeroDeSesionesDeJuego: gameSessionsCount
+            }
+            excelRows.push(excelRow);
         }
-
         const worksheet = XLSX.utils.json_to_sheet(excelRows);  
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, 'Estudiantes');
@@ -245,50 +306,15 @@
         const dateString = date.getDate() + '-' + (date.getMonth() + 1) + '-' + date.getFullYear();
         const fileName = 'estudiantes_' + dateString + '.xlsx';
         XLSX.writeFile(workbook, fileName);
+    } else if (selectedLevelToExportTiming === '2'){
+        console.log('Exporting level 2');
+    }
 }
 
-function exportStudentTimeAndSessionsToExcel() {
-    const excelRows = [];
-    for(let student of filteredStudents){
-        // Skip students without a group
-        if(!student.group_id) {
-            continue;
-        }
-        
-        let totalTime = 0;
-        let gameSessionsCount = 0;
-        for(let levelKey of Object.keys(student.progress)){
-            const levelData = student.progress[levelKey];
-            for(let gameSessionKey of Object.keys(levelData)){
-                const gameSessionData = levelData[gameSessionKey];
-                if(gameSessionData.data && gameSessionData.sections){
-                    for(let sectionKey of Object.keys(gameSessionData.sections)){
-                        const sectionData = gameSessionData.sections[sectionKey];
-                        if(sectionData){
-                            totalTime += sectionData.time;
-                            gameSessionsCount++;
-                        }
-                    }
-                }
-            }
-        }
-        const excelRow = {
-            name: student.name + ' ' + student.lastName,
-            email: student.email,
-            group: $Groups.find(group => group.group_id === student.group_id)?.group_name || '',
-            'Tiempo Total (min)' : Math.round(totalTime / 60),
-            NumeroDeSesionesDeJuego: gameSessionsCount
-        }
-        excelRows.push(excelRow);
-    }
-    const worksheet = XLSX.utils.json_to_sheet(excelRows);  
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Estudiantes');
-    const date = new Date();
-    const dateString = date.getDate() + '-' + (date.getMonth() + 1) + '-' + date.getFullYear();
-    const fileName = 'estudiantes_' + dateString + '.xlsx';
-    XLSX.writeFile(workbook, fileName);
-}
+let downloadSelectionModal = false;
+let selectedGroupsCheckbox: string[] = [];
+let selectedGroupsCheckboxTiming: string[] = [];
+
     
 </script>
 
@@ -310,7 +336,10 @@ function exportStudentTimeAndSessionsToExcel() {
                 <option value="2"> Nivel 2</option>
             </Select>
             <Button color="green" variant="outline" size="sm"
-                on:click={exportStudentTimeAndSessionsToExcel}
+                on:click={() => {
+                    downloadSelectionModal = true,
+                    selectedGroupsCheckbox = []
+                }}
             >
                 Exportar
                 <FileExportSolid class="ml-3" size="sm"/>
@@ -414,6 +443,129 @@ function exportStudentTimeAndSessionsToExcel() {
         </div>
     </div>
 </div>
+
+<Modal bind:open={downloadSelectionModal} title="Descargas">
+    <div class="download-modal-content">
+        <Tabs style="pill">
+            <TabItem open activeClasses='p-4 text-black font-bold bg-green-300 rounded-t-lg' inactiveClasses='p-4 text-gray-500 rounded-t-lg hover:text-gray-600 hover:bg-gray-50'>
+                <span slot="title"> Datos de juego </span>
+                <div class="game-data-export-container">
+                    <p class="font-bold text-black mb-5"> Parámetros actuales, datos de juego: </p>
+                    <div class="flex justify-left align-center mb-5">
+                        <p class="mr-5 mt-3">Grupo: </p>
+                        <Button color="green">
+                            Selecciona grupo(s) a exportar
+                        </Button>
+                        <Dropdown class="w-56 overflow-y-auto py-1 h-48">
+                            <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
+                                <Checkbox value="General" checked={selectedGroupsCheckbox.includes('General')}
+                                    on:click={() => {
+                                        if(selectedGroupsCheckbox.includes('General')){
+                                            selectedGroupsCheckbox = selectedGroupsCheckbox.filter(item => item !== 'General');
+                                        } else {
+                                            selectedGroupsCheckbox = ['General'];
+                                        }
+                                    }}
+                                >General</Checkbox>
+                            </li>
+                            {#each professorGroups as group (group.group_id)}
+                                <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
+                                    <Checkbox value={group.group_id} checked={selectedGroupsCheckbox.includes(group.group_id)} disabled={selectedGroupsCheckbox.includes('General')}
+                                        on:click={() => {
+                                            if(selectedGroupsCheckbox.includes(group.group_id)){
+                                                selectedGroupsCheckbox = selectedGroupsCheckbox.filter(item => item !== group.group_id);
+                                            } else {
+                                                selectedGroupsCheckbox = [...selectedGroupsCheckbox, group.group_id];
+                                            }
+                                        }}
+                                    >{group.group_name}</Checkbox>
+                                </li>
+                            {/each}
+                        </Dropdown>
+                    </div>
+                    <div class="flex justify-between align-center mb-5">
+                        <p class="mr-7 mt-3">Nivel: </p>
+                        <Select id="levelSelect" name="levelSelect" placeholder="Niveles" bind:value={selectedLevelToExportData}>
+                            <option selected value="1"> Nivel 1</option>
+                            <option value="2"> Nivel 2</option>
+                        </Select>
+                    </div>
+                    <div class="flex justify-end">
+                        <Button color="green" variant="outline" size="sm"
+                        disabled={selectedGroupsCheckbox.length === 0}
+                        on:click={
+                            () => {
+                                exportToExcel()
+                            }
+                        }
+                    >
+                        Exportar
+                        <FileExportSolid class="ml-3" size="sm"/>
+                    </Button>
+                    </div>
+                </div>
+            </TabItem>
+            <TabItem activeClasses='p-4 text-black font-bold bg-green-300 rounded-t-lg' inactiveClasses='p-4 text-gray-500 rounded-t-lg hover:text-gray-600 hover:bg-gray-50'>
+                <span slot="title"> Tiempos </span>
+                <div class="game-data-export-container">
+                    <p class="font-bold text-black mb-5"> Parámetros actuales, tiempo en sesiones de juego: </p>
+                    <div class="flex justify-left align-center mb-5">
+                        <p class="mr-5 mt-3">Grupo: </p>
+                        <Button color="green">
+                            Selecciona grupo(s) a exportar
+                        </Button>
+                        <Dropdown class="w-56 overflow-y-auto py-1 h-48">
+                            <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
+                                <Checkbox value="General" checked={selectedGroupsCheckboxTiming.includes('General')}
+                                    on:click={() => {
+                                        if(selectedGroupsCheckboxTiming.includes('General')){
+                                            selectedGroupsCheckboxTiming = selectedGroupsCheckboxTiming.filter(item => item !== 'General');
+                                        } else {
+                                            selectedGroupsCheckboxTiming = ['General'];
+                                        }
+                                    }}
+                                >General</Checkbox>
+                            </li>
+                            {#each professorGroups as group (group.group_id)}
+                                <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
+                                    <Checkbox value={group.group_id} checked={selectedGroupsCheckboxTiming.includes(group.group_id)} disabled={selectedGroupsCheckboxTiming.includes('General')}
+                                        on:click={() => {
+                                            if(selectedGroupsCheckboxTiming.includes(group.group_id)){
+                                                selectedGroupsCheckboxTiming = selectedGroupsCheckboxTiming.filter(item => item !== group.group_id);
+                                            } else {
+                                                selectedGroupsCheckboxTiming = [...selectedGroupsCheckboxTiming, group.group_id];
+                                            }
+                                        }}
+                                    >{group.group_name}</Checkbox>
+                                </li>
+                            {/each}
+                        </Dropdown>
+                    </div>
+                    <div class="flex justify-between align-center mb-5">
+                        <p class="mr-7 mt-3">Nivel: </p>
+                        <Select id="levelSelect" name="levelSelect" placeholder="Niveles" bind:value={selectedLevelToExportTiming}>
+                            <option selected value="1"> Nivel 1</option>
+                            <option value="2"> Nivel 2</option>
+                        </Select>
+                    </div>
+                    <div class="flex justify-end">
+                        <Button color="green" variant="outline" size="sm"
+                            disabled={selectedGroupsCheckboxTiming.length === 0}
+                            on:click={
+                                () => {
+                                    exportStudentTimeAndSessionsToExcel()
+                                }
+                            }
+                        >
+                            Exportar
+                            <FileExportSolid class="ml-3" size="sm"/>
+                        </Button>
+                    </div>
+                </div>
+            </TabItem>
+        </Tabs>
+    </div>
+</Modal>
 
 <style>
     .stats-container {
