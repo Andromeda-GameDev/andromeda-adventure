@@ -159,7 +159,7 @@
             <Spinner color="purple" size="14"/>
         </div>
     {:else if filteredGroups.length === 0}
-        <h1 class="text-xl font-medium">No tienes grupos asignados.</h1>
+        <h1 class="text-xl font-medium ml-12">No tienes grupos asignados.</h1>
     {:else}
         <div class="groups-content">
             {#each filteredGroups as group}

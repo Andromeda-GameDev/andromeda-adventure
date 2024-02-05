@@ -2,7 +2,7 @@ import { writable } from "svelte/store";
 import { authtest } from '$lib/firebase/firebase';
 import { deleteUser, signInWithPopup } from "firebase/auth";
 import { GoogleAuthProvider, sendPasswordResetEmail, signOut, updatePassword, signInWithEmailAndPassword } from "firebase/auth";
-import { getDatabase, ref, get, remove } from "firebase/database";
+import { getDatabase, ref, get, remove, set, update } from "firebase/database";
 
 type User = {
     isLogged: boolean;
@@ -11,6 +11,8 @@ type User = {
     role?: string | null;
     name: string | null;
     group_id?: string | null;
+    status?: string | null;
+    validated?: boolean | null;
 };
 
 export const authStore = writable<User>({
@@ -20,6 +22,8 @@ export const authStore = writable<User>({
     role: null as string | null,
     name: null as string | null,
     group_id: null as string | null,
+    status: null as string | null,
+    validated: null as boolean | null,
 });
 
 export const checkUserRole = async (uid: string) => {
@@ -34,16 +38,79 @@ export const checkUserRole = async (uid: string) => {
     }
 }
 
-export const checkUserGroup = async (uid: string) => {
+export const checkUserInfo = async (uid: string) => {
     const database = getDatabase();
     const userRef = ref(database, `users/${uid}`);
     const snapshot = await get(userRef);
 
     if (snapshot.exists()) {
-        return snapshot.val().group as string;
+        return snapshot.val();
     } else {
         return null;
     }
+}
+
+export const checkProfessorInfo = async (uid: string) => {
+    const database = getDatabase();
+    const professorRef = ref(database, `professors/${uid}`);
+    const snapshot = await get(professorRef);
+
+    if (snapshot.exists()) {
+        return snapshot.val();
+    } else {
+        return null;
+    }
+}
+
+export const registerStudent = async (user_uid: string, email: string, name: string, last_name: string) => {
+    const db = getDatabase();
+    const userRef = ref(db, `users/${user_uid}`);
+    await set(userRef, {
+        email,
+        group: '',
+        last_name,
+        name,
+        validated: false,
+        status: 'active',
+        demo: false,
+    });
+
+    const roleRef = ref(db, `roles/${user_uid}`);
+    await set(roleRef, {
+        role: 'student'
+    });
+}
+
+export const registerProfessor = async (user_uid: string, email: string, name: string, last_name: string) => {
+    const db = getDatabase();
+    const professorReference = ref(db, `professors/${user_uid}`);
+
+    const date = new Date();
+    const day = date.getDate();
+    const month = date.getMonth() + 1;
+    const year = date.getFullYear();
+
+    await set(professorReference, {
+        email,
+        last_name,
+        name,
+        status: 'pending',
+        firstLogTime: `${day}/${month}/${year}`,
+        demo: false,
+    });
+
+    const roleRef = ref(db, `roles/${user_uid}`);
+    await set(roleRef, {
+        role: 'professor'
+    });
+}
+
+export const validateUser = async (uid: string) => {
+    const db = getDatabase();
+    const userRef = ref(db, `users/${uid}`);
+    await update(userRef, {
+        validated: true,
+    });
 }
 
 export const authHandlers = {
@@ -66,6 +133,10 @@ export const authHandlers = {
                 uid: null,
                 email: null,
                 role: null,
+                name: null,
+                group_id: null,
+                status: null,
+                validated: null,
             };
         });
 
@@ -73,6 +144,7 @@ export const authHandlers = {
 
     resetPassword: async (email: string) => {
         await sendPasswordResetEmail(authtest, email);
+        console.log('Email sent');
     },
 
     updatePassword: async (password: string) => {

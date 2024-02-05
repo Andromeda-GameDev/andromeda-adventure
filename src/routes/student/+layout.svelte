@@ -32,6 +32,18 @@
         }
     }
 
+    $ : {
+        if($authStore) {
+            if($authStore.role){
+                if($authStore.role !== 'student' || $authStore.role === null) {
+                    if(browser) {
+                        goto('/');
+                    }
+                }
+            }
+        }
+    }
+
     let currentDate: string;
 
     $: {

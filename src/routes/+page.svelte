@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Input, Button, ButtonGroup, InputAddon, Spinner } from 'flowbite-svelte';
+    import { Input, Button, ButtonGroup, InputAddon, Spinner, Modal } from 'flowbite-svelte';
     import { EnvelopeSolid, EyeOutline, EyeSlashOutline } from 'flowbite-svelte-icons';
     import { authHandlers, authStore } from '../stores/auth';
     import Alert from "../components/Alert.svelte"
@@ -8,7 +8,8 @@
     let passwordVisible = false;
     let email = '';
     let password = '';
-    let isLoading = false;  
+    let isLoading = false; 
+    let forgotPasswordModal = false; 
 
     let alert = {
         visible: false,
@@ -60,15 +61,89 @@
             return;
         }
     }
+    
 
     $: if($authStore.isLogged) {
         let userRole = $authStore.role;
         if(userRole == 'admin') {
             window.location.href = '/admin';
         } else if(userRole == 'student') {
-            window.location.href = '/student';
+           if($authStore.status){
+                if($authStore.status == 'active'){
+                    window.location.href = '/student';
+                } else {
+                    alert = {
+                        visible: true,
+                        type: "error",
+                        message: "Su cuenta no ha sido invalidada por el administrador",
+                    };
+
+                    authHandlers.logout();
+                }
+           } 
+           
         } else if(userRole == 'professor') {
-            window.location.href = '/professor';
+            if($authStore.status){
+                console.log($authStore.status);
+                if($authStore.status == 'active'){
+                    window.location.href = '/professor';
+                } else if($authStore.status === 'pending'){
+                    alert = {
+                        visible: true,
+                        type: "info",
+                        message: "Su cuenta está pendiente de aprobación",
+                    };
+
+                    authHandlers.logout();
+                } else if($authStore.status === 'rejected'){
+                    alert = {
+                        visible: true,
+                        type: "error",
+                        message: "Su cuenta ha sido rechazada",
+                    };
+
+                    authHandlers.logout();
+                } else if($authStore.status === 'blocked'){
+                    alert = {
+                        visible: true,
+                        type: "error",
+                        message: "Su cuenta ha sido desactivada",
+                    };
+
+                    authHandlers.logout();
+                }
+            }
+        }
+    }
+
+    async function handleRecoverPassword() {
+        try {
+            if(email == '') {
+                alert = {
+                    visible: true,
+                    type: "error",
+                    message: "Por favor, ingrese su correo electrónico",
+                };
+                return;
+            }
+
+            await authHandlers.resetPassword(email);
+
+            forgotPasswordModal = false;
+
+            alert = {
+                visible: true,
+                type: "success",
+                message: "Se ha enviado un correo electrónico para restablecer su contraseña",
+            };
+        } catch (error) {
+            const firebaseError = error as FirebaseError;
+
+            alert = {
+                visible: true,
+                type: "error",
+                message: firebaseError.code,
+            };
         }
     }
 
@@ -119,10 +194,27 @@
                 <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google G Logo" class="google-icon"/>
                 Google
             </Button>
-            <a href="www.google.com">¿Olvidaste tu contraseña?</a>
+            <a  href="/"
+                on:click={(event) => {
+                    event.preventDefault();
+                    forgotPasswordModal = true;
+                }}
+                class="mt-6 mb-6 hover:text-blue-500"
+            >¿Olvidaste tu contraseña?</a>
         </div>
     </div>  
 </div>
+
+<Modal bind:open={forgotPasswordModal} title="Recuperar contraseña">
+    <p>Ingrese su correo electrónico para recuperar su contraseña</p>
+    <Input bind:value={email} id="email" type="email" size="lg" placeholder="Correo electrónico" class="focus:ring-blue-500 focus:border-blue-500" autocomplete="on"/>
+    <Button on:click={() => {
+        console.log(email),
+        handleRecoverPassword()
+    }} class="mt-6 mb-6" color="blue" size="lg">
+        Enviar
+    </Button>
+</Modal>
 
 <Alert
     alertType={alert.type}
