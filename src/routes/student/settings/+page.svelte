@@ -16,9 +16,12 @@
         const auth = getAuth();
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                user.providerData.forEach((profile) => {
-                    providerId = profile.providerId;
-                });
+                // esta sección determina si el usuario se autenticó con google o con email y contraseña, no obstante estudiantes tendran google.com primero, siempre
+                // user.providerData.forEach((profile) => {
+                //     console.log(profile.providerId);
+                //     providerId = profile.providerId;
+                // });
+                providerId = user.providerData[0].providerId;
             }
         });
     });
