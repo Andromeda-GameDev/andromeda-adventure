@@ -124,4 +124,28 @@
         padding-top: 3rem;
     }
 
+    @media(max-width: 768px) {
+        .greeting {
+            padding-left: 1rem;
+        }
+
+        .card-container {
+            visibility: hidden;
+            height: 0;
+        }
+
+        .download-manuals {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex: 0;
+            flex-wrap: wrap;
+            padding-top: 1.5rem;
+            width: 90%;
+            padding-bottom: 1.5rem;
+        }
+
+        
+    }
+
 </style>

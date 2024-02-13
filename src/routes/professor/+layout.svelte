@@ -198,6 +198,31 @@
         width: 100%;
         height: 100%;
     }
+
+    @media(max-width: 600px){
+        .main-container {
+            flex-direction: column;
+        }
+
+        .sidebar {
+            width: 100%;
+            height: 40%;
+        }
+
+        .content {
+            width: 100%;
+            height: auto;
+        }
+
+        .header {
+            border-bottom: 1px solid #afabab;
+            border-top: 1px solid #afabab;
+            width: 90%;
+            height: 15%;
+            margin-bottom: 1rem;
+        }
+
+    }
     
 </style>
 
