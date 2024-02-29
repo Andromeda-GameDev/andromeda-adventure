@@ -187,30 +187,6 @@
 
     let test = true;
 
-    async function testCloudFunction(){
-        try{
-            const response = await fetch('https://on-request-example-gm6ts4osaa-uc.a.run.app/', 
-            {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    name: "John Salchichon",
-                    message: "Hello world!"
-                }),
-                mode: 'cors'
-            },
-            );
-            
-            const data = await response.json();
-            console.log(data);
-        } catch (error){
-            console.log(error);
-        }
-    
-    }
-
 </script>
 
 
@@ -221,9 +197,6 @@
                 <p> Hola, </p>
                 <p class="ml-2 text-blue-600 font-semibold">{name}</p>
             </div>
-            <Button color="blue" size="sm" outline
-                on:click={testCloudFunction}
-            >Test Cloud Function</Button>
         </div>
         <div class="content">
             <div class="top-section">
