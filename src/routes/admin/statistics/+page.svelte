@@ -286,90 +286,93 @@
             const fileName = 'estudiantes_' + dateString + '.xlsx';
             XLSX.writeFile(workbook, fileName);
         } else if(selectedLevelToExportData === "2"){
-            const sessionOverviewRows: Level2_SessionOverviewSheet[] = [];
-            const detailedQuestionRows: Level2_DetailedQuestionSheet[] = [];
-            const detailedAnswersRows: Level2_DetailedAnswersSheet[] = [];
+            // const sessionOverviewRows: Level2_SessionOverviewSheet[] = [];
+            // const detailedQuestionRows: Level2_DetailedQuestionSheet[] = [];
+            // const detailedAnswersRows: Level2_DetailedAnswersSheet[] = [];
 
-            for(let student of studentsToExport){
-                const levelData = student.progress['level_' + selectedLevelToExportData];
-                if(levelData){
-                    for(let gameSessionKey of Object.keys(levelData)){
-                        const gameSessionData = levelData[gameSessionKey];
-                        const gameSessionKeySplitted = parseGameSessionKey(gameSessionKey);
+            // for(let student of studentsToExport){
+            //     const levelData = student.progress['level_' + selectedLevelToExportData];
+            //     if(levelData){
+            //         for(let gameSessionKey of Object.keys(levelData)){
+            //             const gameSessionData = levelData[gameSessionKey];
+            //             const gameSessionKeySplitted = parseGameSessionKey(gameSessionKey);
 
-                        const sessionOverviewRow: Level2_SessionOverviewSheet = {
-                            name: student.name + ' ' + student.lastName,
-                            email: student.email,
-                            group: $Groups.find(group => group.group_id === student.group_id)?.group_name || '',
-                            level: 'Nivel ' + selectedLevel,
-                            date: gameSessionKeySplitted.date,
-                            time: gameSessionKeySplitted.time,
-                            session_id: gameSessionKey,
-                            stage: '',
-                            weight: 0,
-                            a_value: 0
-                        };
+            //             const sessionOverviewRow: Level2_SessionOverviewSheet = {
+            //                 name: student.name + ' ' + student.lastName,
+            //                 email: student.email,
+            //                 group: $Groups.find(group => group.group_id === student.group_id)?.group_name || '',
+            //                 level: 'Nivel ' + selectedLevel,
+            //                 date: gameSessionKeySplitted.date,
+            //                 time: gameSessionKeySplitted.time,
+            //                 session_id: gameSessionKey,
+            //                 stage: '',
+            //                 weight: 0,
+            //                 a_value: 0
+            //             };
 
-                        if(gameSessionData.data){
-                            for(let stageKey of Object.keys(gameSessionData.data)){
-                                const stageData = gameSessionData.data[stageKey];
-                                sessionOverviewRow.stage = stageKey;
-                                sessionOverviewRow.weight = stageData.weight;
-                                sessionOverviewRow.a_value = stageData.a;
+            //             if(gameSessionData.data){
+            //                 for(let stageKey of Object.keys(gameSessionData.data)){
+            //                     const stageData = gameSessionData.data[stageKey];
+            //                     sessionOverviewRow.stage = stageKey;
+            //                     sessionOverviewRow.weight = stageData.weight;
+            //                     sessionOverviewRow.a_value = stageData.a;
 
-                                for(let question of stageData.questionList){
-                                    const detailedQuestionRow: Level2_DetailedQuestionSheet = {
-                                        session_id: gameSessionKey,
-                                        stage: stageKey,
-                                        question_id: question.question,
-                                        formula: question.formula,
-                                        question: question.question,
-                                        question_type: question.questionType,
-                                        answers: question.answers.join(', ')
-                                    };
-                                    detailedQuestionRows.push(detailedQuestionRow);
-                                }
-                            }
-                        }
+            //                     for(let question of stageData.questionList){
+            //                         const detailedQuestionRow: Level2_DetailedQuestionSheet = {
+            //                             session_id: gameSessionKey,
+            //                             stage: stageKey,
+            //                             question_id: question.question,
+            //                             formula: question.formula,
+            //                             question: question.question,
+            //                             question_type: question.questionType,
+            //                             answers: question.answers.join(', ')
+            //                         };
+            //                         detailedQuestionRows.push(detailedQuestionRow);
+            //                     }
+            //                 }
+            //             }
 
-                        if(gameSessionData.sections){
-                            for(let sectionKey of Object.keys(gameSessionData.sections)){
-                                const sectionData = gameSessionData.sections[sectionKey];
-                                for(let partKey of Object.keys(sectionData)){
-                                    const partData = sectionData[partKey];
-                                    const detailedAnswersRow: Level2_DetailedAnswersSheet = {
-                                        session_id: gameSessionKey,
-                                        stage: sectionKey,
-                                        question_id: partKey,
-                                        part_id: partKey,
-                                        answer_given: partData ? partData.answer_given : '',
-                                        is_correct: partData.is_correct,
-                                        score: partData.score,
-                                        time: partData.time
-                                    };
-                                    detailedAnswersRows.push(detailedAnswersRow);
-                                }
-                            }
-                        }
+            //             if(gameSessionData.sections){
+            //                 for(let sectionKey of Object.keys(gameSessionData.sections)){
+            //                     const sectionData = gameSessionData.sections[sectionKey];
+            //                     for(let partKey of Object.keys(sectionData)){
+            //                         const partData = sectionData[partKey];
+            //                         const detailedAnswersRow: Level2_DetailedAnswersSheet = {
+            //                             session_id: gameSessionKey,
+            //                             stage: sectionKey,
+            //                             question_id: partKey,
+            //                             part_id: partKey,
+            //                             answer_given: partData ? partData.answer_given : '',
+            //                             is_correct: partData.is_correct,
+            //                             score: partData.score,
+            //                             time: partData.time
+            //                         };
+            //                         detailedAnswersRows.push(detailedAnswersRow);
+            //                     }
+            //                 }
+            //             }
 
-                        sessionOverviewRows.push(sessionOverviewRow);
-                    }
-                }
-            }
+            //             sessionOverviewRows.push(sessionOverviewRow);
+            //         }
+            //     }
+            // }
 
-            const sessionOverviewWorksheet = XLSX.utils.json_to_sheet(sessionOverviewRows);
-            const detailedQuestionWorksheet = XLSX.utils.json_to_sheet(detailedQuestionRows);
-            const detailedAnswersWorksheet = XLSX.utils.json_to_sheet(detailedAnswersRows);
+            // const sessionOverviewWorksheet = XLSX.utils.json_to_sheet(sessionOverviewRows);
+            // const detailedQuestionWorksheet = XLSX.utils.json_to_sheet(detailedQuestionRows);
+            // const detailedAnswersWorksheet = XLSX.utils.json_to_sheet(detailedAnswersRows);
 
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, sessionOverviewWorksheet, 'Session Overview');
-            XLSX.utils.book_append_sheet(workbook, detailedQuestionWorksheet, 'Detailed Questions');
-            XLSX.utils.book_append_sheet(workbook, detailedAnswersWorksheet, 'Detailed Answers');
+            // const workbook = XLSX.utils.book_new();
+            // XLSX.utils.book_append_sheet(workbook, sessionOverviewWorksheet, 'Session Overview');
+            // XLSX.utils.book_append_sheet(workbook, detailedQuestionWorksheet, 'Detailed Questions');
+            // XLSX.utils.book_append_sheet(workbook, detailedAnswersWorksheet, 'Detailed Answers');
 
-            const date = new Date();
-            const dateString = date.getDate() + '-' + (date.getMonth() + 1) + '-' + date.getFullYear();
-            const fileName = 'estudiantes_' + dateString + '.xlsx';
-            XLSX.writeFile(workbook, fileName);
+            // const date = new Date();
+            // const dateString = date.getDate() + '-' + (date.getMonth() + 1) + '-' + date.getFullYear();
+            // const fileName = 'estudiantes_' + dateString + '.xlsx';
+            // XLSX.writeFile(workbook, fileName);
+            
+            // open new window with link: https://v4-gm6ts4osaa-uc.a.run.app/report/level-2
+            window.open('https://v4-gm6ts4osaa-uc.a.run.app/report/level-2');
         }
 }
 
@@ -569,7 +572,15 @@ let selectedGroupsCheckboxTiming: string[] = [];
                 <div class="game-data-export-container">
                     <p class="font-bold text-black mb-5"> Parámetros actuales, datos de juego: </p>
                     <div class="flex justify-left align-center mb-5">
-                        <p class="mr-5 mt-3">Grupo: </p>
+                        <p class="mr-11 mt-3">Nivel: </p>
+                        <Select id="levelSelect" name="levelSelect" placeholder="Niveles" bind:value={selectedLevelToExportData}>
+                            <option selected value="1"> Nivel 1</option>
+                            <option value="2"> Nivel 2</option>
+                        </Select>
+                    </div>
+                    {#if selectedLevelToExportData === '1'}
+                    <div class="flex justify-left align-center mb-5">
+                        <p class="mr-7 mt-3">Grupos: </p>
                         <Button color="green">
                             Selecciona grupo(s) a exportar
                         </Button>
@@ -600,16 +611,10 @@ let selectedGroupsCheckboxTiming: string[] = [];
                             {/each}
                         </Dropdown>
                     </div>
-                    <div class="flex justify-between align-center mb-5">
-                        <p class="mr-7 mt-3">Nivel: </p>
-                        <Select id="levelSelect" name="levelSelect" placeholder="Niveles" bind:value={selectedLevelToExportData}>
-                            <option selected value="1"> Nivel 1</option>
-                            <option value="2"> Nivel 2</option>
-                        </Select>
-                    </div>
+                    {/if}
                     <div class="flex justify-end">
                         <Button color="green" variant="outline" size="sm"
-                        disabled={selectedGroupsCheckbox.length === 0}
+                        disabled={selectedGroupsCheckbox.length === 0 && selectedLevelToExportData === '1'}
                         on:click={
                             () => {
                                 exportToExcel()
@@ -627,7 +632,14 @@ let selectedGroupsCheckboxTiming: string[] = [];
                 <div class="game-data-export-container">
                     <p class="font-bold text-black mb-5"> Parámetros actuales, tiempo en sesiones de juego: </p>
                     <div class="flex justify-left align-center mb-5">
-                        <p class="mr-5 mt-3">Grupo: </p>
+                        <p class="mr-11 mt-3">Nivel: </p>
+                        <Select id="levelSelect" name="levelSelect" placeholder="Niveles" bind:value={selectedLevelToExportTiming}>
+                            <option selected value="1"> Nivel 1</option>
+                            <!-- <option value="2"> Nivel 2</option> -->
+                        </Select>
+                    </div>
+                    <div class="flex justify-left align-center mb-5">
+                        <p class="mr-7 mt-3">Grupos: </p>
                         <Button color="green">
                             Selecciona grupo(s) a exportar
                         </Button>
@@ -657,13 +669,6 @@ let selectedGroupsCheckboxTiming: string[] = [];
                                 </li>
                             {/each}
                         </Dropdown>
-                    </div>
-                    <div class="flex justify-between align-center mb-5">
-                        <p class="mr-7 mt-3">Nivel: </p>
-                        <Select id="levelSelect" name="levelSelect" placeholder="Niveles" bind:value={selectedLevelToExportTiming}>
-                            <option selected value="1"> Nivel 1</option>
-                            <option value="2"> Nivel 2</option>
-                        </Select>
                     </div>
                     <div class="flex justify-end">
                         <Button color="green" variant="outline" size="sm"
