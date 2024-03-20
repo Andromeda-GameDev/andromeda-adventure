@@ -158,6 +158,40 @@
         return Math.abs(value1 - value2) <= tolerence;
     }
 
+    interface Level2_SessionOverviewSheet {
+        name: string;
+        email: string;
+        group: string;
+        level: string;
+        date: string;
+        time: string;
+        session_id: string;
+        stage: string;
+        weight: number;
+        a_value: number;
+    }
+
+    interface Level2_DetailedQuestionSheet {
+        session_id: string;
+        stage: string;
+        question_id: string;
+        formula: string;
+        question: string;
+        question_type: string;
+        answers: string;
+    }
+
+    interface Level2_DetailedAnswersSheet {
+        session_id: string;
+        stage: string;
+        question_id: string;
+        part_id: string;
+        answer_given: string;
+        is_correct: boolean;
+        score: number;
+        time: number;
+    }
+
     function exportToExcel(){
         const excelRows: ExcelRow[] = [];
         let studentsToExport: Student[] = [];
@@ -167,84 +201,178 @@
             studentsToExport = filteredStudents.filter(student => student.group_id === selectedGroup);
         }
 
-        for(let student of studentsToExport){
-            const levelData = student.progress['level_' + selectedLevel];
-            if(levelData){
-                for(let gameSessionKey of Object.keys(levelData)){
-                    const gameSessionData = levelData[gameSessionKey];
-                    const gameSessionKeySplitted = parseGameSessionKey(gameSessionKey);
-                    
-                    if(gameSessionData.data && gameSessionData.sections){
-                        for(let sectionKey of Object.keys(gameSessionData.sections)){
-                            const sectionData = gameSessionData.sections[sectionKey];
-                            if(sectionData){
-                                const excelRow: ExcelRow = {
-                                    name: student.name + ' ' + student.lastName,
-                                    email: student.email,
-                                    group: $Groups.find(group => group.group_id === student.group_id)?.group_name || '',
-                                    level: 'Nivel ' + selectedLevel,
-                                    date: gameSessionKeySplitted.date,
-                                    time: gameSessionKeySplitted.time,
-                                    section: sectionKey.split('_')[1], // assuming sectionKey is in the format 'section_X'
-                                    attempts: sectionData.attempts,
-                                    score: sectionData.score,
-                                    timeInSection: sectionData.time,
-                                    acidSpeed: gameSessionData.data.acidSpeed,
-                                    acidTime: gameSessionData.data.acidTime,
-                                    g: gameSessionData.data.g,
-                                    m1: gameSessionData.data.m1,
-                                    m2: gameSessionData.data.m2,
-                                    surface: gameSessionData.data.surface,
-                                    v0: gameSessionData.data.v0,
-                                    v1: gameSessionData.data.v1,
-                                    v2: gameSessionData.data.v2,
-                                    studentAnswer: sectionData.listResults ? getStudentAnswer(sectionData.listResults) : 0,
-                                    isCorrect: sectionData.listResults ? isCorrect(getStudentAnswer(sectionData.listResults), getCorrectAnswerLevel_1(gameSessionData.data, sectionKey), 0.1) : false,
-                                    correctAnswer: sectionData.listResults ? getCorrectAnswerLevel_1(gameSessionData.data, sectionKey) : 0
-                                }
+        if(selectedLevel === "1"){
+            for(let student of studentsToExport){
+                const levelData = student.progress['level_' + selectedLevel];
+                if(levelData){
+                    for(let gameSessionKey of Object.keys(levelData)){
+                        const gameSessionData = levelData[gameSessionKey];
+                        const gameSessionKeySplitted = parseGameSessionKey(gameSessionKey);
+                        
+                        if(gameSessionData.data && gameSessionData.sections){
+                            for(let sectionKey of Object.keys(gameSessionData.sections)){
+                                const sectionData = gameSessionData.sections[sectionKey];
+                                if(sectionData){
+                                    const excelRow: ExcelRow = {
+                                        name: student.name + ' ' + student.lastName,
+                                        email: student.email,
+                                        group: $Groups.find(group => group.group_id === student.group_id)?.group_name || '',
+                                        level: 'Nivel ' + selectedLevel,
+                                        date: gameSessionKeySplitted.date,
+                                        time: gameSessionKeySplitted.time,
+                                        section: sectionKey.split('_')[1], // assuming sectionKey is in the format 'section_X'
+                                        attempts: sectionData.attempts,
+                                        score: sectionData.score,
+                                        timeInSection: sectionData.time,
+                                        acidSpeed: gameSessionData.data.acidSpeed,
+                                        acidTime: gameSessionData.data.acidTime,
+                                        g: gameSessionData.data.g,
+                                        m1: gameSessionData.data.m1,
+                                        m2: gameSessionData.data.m2,
+                                        surface: gameSessionData.data.surface,
+                                        v0: gameSessionData.data.v0,
+                                        v1: gameSessionData.data.v1,
+                                        v2: gameSessionData.data.v2,
+                                        studentAnswer: sectionData.listResults ? getStudentAnswer(sectionData.listResults) : 0,
+                                        isCorrect: sectionData.listResults ? isCorrect(getStudentAnswer(sectionData.listResults), getCorrectAnswerLevel_1(gameSessionData.data, sectionKey), 0.1) : false,
+                                        correctAnswer: sectionData.listResults ? getCorrectAnswerLevel_1(gameSessionData.data, sectionKey) : 0
+                                    }
 
-                                excelRows.push(excelRow);
+                                    excelRows.push(excelRow);
+                                }
                             }
+                        } else {
+                            const excelRow: ExcelRow = {
+                                name: student.name + ' ' + student.lastName,
+                                email: student.email,
+                                group: $Groups.find(group => group.group_id === student.group_id)?.group_name || '',
+                                level: 'Nivel ' + selectedLevel,
+                                date: gameSessionKeySplitted.date,
+                                time: gameSessionKeySplitted.time,
+                                section: 'N/A',
+                                attempts: 0,
+                                score: 0,
+                                timeInSection: 0,
+                                acidSpeed: 0,
+                                acidTime: 0,
+                                g: 0,
+                                m1: 0,
+                                m2: 0,
+                                surface: 0,
+                                v0: 0,
+                                v1: 0,
+                                v2: 0,
+                                studentAnswer: 0,
+                                isCorrect: false,
+                                correctAnswer: 0
+                            }
+
+                            excelRows.push(excelRow);
                         }
-                    } else {
-                        const excelRow: ExcelRow = {
+                    }
+                }
+            }
+
+            const worksheet = XLSX.utils.json_to_sheet(excelRows);  
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Estudiantes');
+            const date = new Date();
+            const dateString = date.getDate() + '-' + (date.getMonth() + 1) + '-' + date.getFullYear();
+            const fileName = 'estudiantes_' + dateString + '.xlsx';
+            XLSX.writeFile(workbook, fileName);
+        } else if(selectedLevel === "2"){
+            const sessionOverviewRows: Level2_SessionOverviewSheet[] = [];
+            const detailedQuestionRows: Level2_DetailedQuestionSheet[] = [];
+            const detailedAnswersRows: Level2_DetailedAnswersSheet[] = [];
+
+            for(let student of studentsToExport){
+                const levelData = student.progress['level_' + selectedLevel];
+                if(levelData){
+                    for(let gameSessionKey of Object.keys(levelData)){
+                        const gameSessionData = levelData[gameSessionKey];
+                        const gameSessionKeySplitted = parseGameSessionKey(gameSessionKey);
+
+                        const sessionOverviewRow: Level2_SessionOverviewSheet = {
                             name: student.name + ' ' + student.lastName,
                             email: student.email,
                             group: $Groups.find(group => group.group_id === student.group_id)?.group_name || '',
                             level: 'Nivel ' + selectedLevel,
                             date: gameSessionKeySplitted.date,
                             time: gameSessionKeySplitted.time,
-                            section: 'N/A',
-                            attempts: 0,
-                            score: 0,
-                            timeInSection: 0,
-                            acidSpeed: 0,
-                            acidTime: 0,
-                            g: 0,
-                            m1: 0,
-                            m2: 0,
-                            surface: 0,
-                            v0: 0,
-                            v1: 0,
-                            v2: 0,
-                            studentAnswer: 0,
-                            isCorrect: false,
-                            correctAnswer: 0
+                            session_id: gameSessionKey,
+                            stage: '',
+                            weight: 0,
+                            a_value: 0
+                        };
+
+                        if(gameSessionData.data){
+                            for(let stageKey of Object.keys(gameSessionData.data)){
+                                const stageData = gameSessionData.data[stageKey];
+                                sessionOverviewRow.stage = stageKey;
+                                sessionOverviewRow.weight = stageData.weight;
+                                sessionOverviewRow.a_value = stageData.a;
+
+                                for(let question of stageData.questionList){
+                                    const detailedQuestionRow: Level2_DetailedQuestionSheet = {
+                                        session_id: gameSessionKey,
+                                        stage: stageKey,
+                                        question_id: question.question,
+                                        formula: question.formula,
+                                        question: question.question,
+                                        question_type: question.questionType,
+                                        answers: question.answers.join(', ')
+                                    };
+                                    detailedQuestionRows.push(detailedQuestionRow);
+                                }
+                            }
                         }
 
-                        excelRows.push(excelRow);
+                        if (gameSessionData.sections) {
+                            for (let stageKey of Object.keys(gameSessionData.sections)) {
+                                const stageData = gameSessionData.sections[stageKey];
+                                for (let substageKey of Object.keys(stageData)) {
+                                const substageData = stageData[substageKey];
+                                for (let partKey of Object.keys(substageData)) {
+                                    const partData = substageData[partKey];
+                                    if (partData.attempts) {
+                                    for (let attempt of partData.attempts) {
+                                        const detailedAnswersRow: Level2_DetailedAnswersSheet = {
+                                        session_id: gameSessionKey,
+                                        stage: stageKey,
+                                        question_id: substageKey,
+                                        part_id: partKey,
+                                        answer_given: attempt.attempt.join(', '),
+                                        is_correct: partData.is_correct,
+                                        score: partData.score,
+                                        time: partData.time
+                                        };
+                                        detailedAnswersRows.push(detailedAnswersRow);
+                                    }
+                                    }
+                                }
+                                }
+                            }
+                            }
+
+                        sessionOverviewRows.push(sessionOverviewRow);
                     }
                 }
             }
-        }
 
-        const worksheet = XLSX.utils.json_to_sheet(excelRows);  
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, 'Estudiantes');
-        const date = new Date();
-        const dateString = date.getDate() + '-' + (date.getMonth() + 1) + '-' + date.getFullYear();
-        const fileName = 'estudiantes_' + dateString + '.xlsx';
-        XLSX.writeFile(workbook, fileName);
+            const sessionOverviewWorksheet = XLSX.utils.json_to_sheet(sessionOverviewRows);
+            const detailedQuestionWorksheet = XLSX.utils.json_to_sheet(detailedQuestionRows);
+            const detailedAnswersWorksheet = XLSX.utils.json_to_sheet(detailedAnswersRows);
+
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, sessionOverviewWorksheet, 'Session Overview');
+            XLSX.utils.book_append_sheet(workbook, detailedQuestionWorksheet, 'Detailed Questions');
+            XLSX.utils.book_append_sheet(workbook, detailedAnswersWorksheet, 'Detailed Answers');
+
+            const date = new Date();
+            const dateString = date.getDate() + '-' + (date.getMonth() + 1) + '-' + date.getFullYear();
+            const fileName = 'estudiantes_' + dateString + '.xlsx';
+            XLSX.writeFile(workbook, fileName);
+        }
 }
 
 function exportStudentTimeAndSessionsToExcel() {

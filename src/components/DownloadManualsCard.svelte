@@ -40,7 +40,7 @@
 
     function apkLink(){
         if(media && media.downloads && media.downloads.length > 0 && media.downloads[0].url){
-            return media.downloads[0].guide;
+            return media.downloads[0].url;
         } else {
             return '';
         }
@@ -51,7 +51,7 @@
             if(media.downloads != null && media.downloads.length > 0){
                 const guide = media.downloads.find((download) => download.platform == platform);
                 if(guide){
-                    return guide.url;
+                    return guide.guide;
                 }
             }
         }
