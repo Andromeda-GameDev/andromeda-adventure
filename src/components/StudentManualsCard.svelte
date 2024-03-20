@@ -91,7 +91,7 @@
             <p class="system-name">Android</p>
             <A href="https://drive.google.com/file/d/1txEf6nDp-5t8CbooajdORomQUtMxeaKK/view" class="text-blue-600 hover:text-blue-400 mt-6" target="_blank">Guia de instalación</A>
             <Button class="bg-blue-600 hover:bg-blue-400 text-white font-bold px-3 mt-10" target="_blank"
-                href={apkLink()}
+                href="https://drive.google.com/file/d/18TP2vH3yF_AGe-dQ3FKT4pxIxYZKvjGR/view?usp=drive_link"
             >
                 Descargar
                 <svelte:component this={ArrowDownToBracketOutline} class="ml-5" size="md"/>
