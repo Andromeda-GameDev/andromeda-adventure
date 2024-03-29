@@ -103,3 +103,22 @@ export async function deleteGroup(group_uuid: string, group_id: string){
 
     return;
 }
+
+
+export async function updateGroupName(group_id: string, group_name: string){
+    const groupRef = ref(db, 'groups/');
+    const specificGroupQuery = query(groupRef, orderByChild('group_id'), equalTo(group_id));
+    const snapshot = await get(specificGroupQuery);
+
+    if (snapshot.exists()) {
+        const data = snapshot.val();
+        for (const id in data){
+            const groupRef = ref(db, `groups/${id}`);
+            return update(groupRef, {
+                group_name: group_name,
+            });
+        }
+    } else {
+        throw new Error('No data available');
+    }
+}

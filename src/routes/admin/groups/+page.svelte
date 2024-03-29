@@ -2,9 +2,9 @@
     import type { Group, Student, Professor } from '../../../types';
     import { Groups, Students, Professors } from '../../../stores/adminData';
     import { Table, TableBody, TableBodyCell, TableHead, TableBodyRow, TableHeadCell, Badge, Input, Dropdown, DropdownDivider, DropdownItem, Select, TableSearch, Modal, Button, Checkbox, Search } from 'flowbite-svelte';
-    import { DotsHorizontalOutline, TrashBinSolid, ArrowLeftOutline, ArrowRightOutline, SearchSolid, PlusSolid} from 'flowbite-svelte-icons';
+    import { DotsHorizontalOutline, TrashBinSolid, ArrowLeftOutline, ArrowRightOutline, SearchSolid, PlusSolid, EditOutline} from 'flowbite-svelte-icons';
     import Alert from '../../../components/Alert.svelte';
-    import { createGroup, addProffessorsToGroup, deleteProfessorFromGroup, deleteStudentFromGroup, deleteGroup } from '../../../api/Admin/groups';
+    import { createGroup, addProffessorsToGroup, deleteProfessorFromGroup, deleteStudentFromGroup, deleteGroup, updateGroupName} from '../../../api/Admin/groups';
 
     let alert = {
         visible: false,
@@ -13,6 +13,7 @@
         position: "top-center"
     };
 
+    let editGroupName: string = '';
     let deleteGroupModal = false;
     let moreGroupModal = false;
     let addGroupModal = false;
@@ -264,6 +265,43 @@
     
     }
 
+    async function handleUpdateGroupName(group_id: string, new_name: string){
+        try {
+            await updateGroupName(group_id, new_name);
+
+            // close modal
+            moreGroupModal = false;
+
+            $Groups = [...$Groups as Group[]].map(group => {
+                if(group.group_id == group_id){
+                    return {
+                        ...group,
+                        group_name: new_name
+                    }
+                }else{
+                    return group;
+                }
+            });
+
+            alert = {
+                visible: true,
+                type: "success",
+                message: "Nombre del grupo actualizado correctamente",
+                position: "top-center"
+            }
+
+            editGroupName = '';
+
+        } catch (error) {
+            alert = {
+                visible: true,
+                type: "error",
+                message: "Error al actualizar el nombre del grupo",
+                position: "top-center"
+            }
+        }
+    }
+
 
 </script>
 
@@ -349,7 +387,22 @@
 
 <Modal bind:open={moreGroupModal} size="lg">
     <div slot="header">
-        <h1 class="font-bold text-xl">{getNameFromID(currentGroupID)}</h1>
+        <div class="flex items-center">
+            {#if editGroupName}
+                <Input bind:value={editGroupName} class="focus:ring-blue-500 focus:border-blue-500 mr-2" />
+                <Button variant="outlined" size="xs" class="bg-blue-500 hover:bg-blue-400" on:click={() => handleUpdateGroupName(currentGroupID, editGroupName)}>
+                    Guardar
+                </Button>
+                <Button variant="outlined" size="xs" class="bg-red-500 hover:bg-red-400 ml-2" on:click={() => editGroupName = ''}>
+                    Cancelar
+                </Button>
+            {:else}
+                <h1 class="font-bold text-xl mr-2">{getNameFromID(currentGroupID)}</h1>
+                <Button variant="outlined" size="xs" class="bg-blue-500 hover:bg-blue-400" on:click={() => editGroupName = getNameFromID(currentGroupID)}>
+                    <EditOutline size="sm"/>
+                </Button>
+            {/if}
+        </div>
     </div>
     <div class="modal-professors">
         <caption class="p-2 text-md font-semibold text-left text-gray-900 bg-white flex justify-between items-center">
