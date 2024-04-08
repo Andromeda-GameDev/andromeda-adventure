@@ -4,6 +4,7 @@ export interface Group {
     group_name: string;
     professors_ids: string[];
     levels: Record<string, boolean>;
+    signed_ups?: number;
 }
 
 export interface Student {

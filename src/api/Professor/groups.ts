@@ -147,7 +147,8 @@ export async function addNewGroup(groupName: string, currentUserId : string, pro
             levels: {
                 level_1: false,
                 level_2: false
-            }
+            },
+            signed_ups: 0
         });
         
         const ref_group_professors = push(ref(db, 'group_professors'));
@@ -165,7 +166,8 @@ export async function addNewGroup(groupName: string, currentUserId : string, pro
             levels: {
                 level_1: false,
                 level_2: false
-            }
+            },
+            signed_ups: 0
         }
 
         return {

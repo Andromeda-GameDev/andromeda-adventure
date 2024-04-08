@@ -56,6 +56,8 @@
             group.group_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             group.group_id.toString().toLowerCase().includes(searchTerm.toLowerCase())
         );
+
+        currentPage = Math.max(1, Math.min(currentPage, Math.ceil(filteredGroups.length / parseInt(itemsPerPage))));
     }
 
     let pagedGroups: Group[] = [];
@@ -102,7 +104,8 @@
                     group_id: res.group_id as string,
                     group_name: newGroupName,
                     professors_ids: [],
-                    levels: {}
+                    levels: {},
+                    signed_ups: 0
                 }];
 
                 newGroupName = '';
@@ -302,6 +305,21 @@
         }
     }
 
+    let totalSignedUpStudents: number = 0;
+    let totalStudentsInFilteredGroups: number = 0;
+    let totalPercentageActive: number = 0;
+
+
+    $ : {
+        totalSignedUpStudents = filteredGroups.reduce((total, group) => total + (group.signed_ups || 0), 0);
+        totalStudentsInFilteredGroups = filteredGroups.reduce((total, group) => total + getNumberOfStudents(group.group_id), 0);
+
+        if (totalSignedUpStudents > 0) {
+            totalPercentageActive = parseFloat(((totalStudentsInFilteredGroups / totalSignedUpStudents) * 100).toFixed(2));
+        } else {
+            totalPercentageActive = 0;
+        }
+    }
 
 </script>
 
@@ -311,24 +329,38 @@
         <Button color="blue" size="sm" on:click={() => addGroupModal = true}>Agregar grupo</Button>
     </div>
     <div class="table-container">
-        <TableSearch bind:inputValue={searchTerm} placeholder="Busca un grupo por nombre o id" divClass='overflow-x-auto sm:rounded-lg'/>
+        <div class="table-search-container">
+            <TableSearch bind:inputValue={searchTerm} placeholder="Busca un grupo por nombre o id" divClass='overflow-x-auto sm:rounded-lg'/>
+            <div class="descriptive">
+                Total Inscritos: {totalSignedUpStudents} | Total Alumnos: {totalStudentsInFilteredGroups} | Porcentaje Activo: {totalPercentageActive}%
+            </div>
+        </div>
         <Table shadow>
             <TableHead class="bg-sky-300">
                 <TableHeadCell>Num. </TableHeadCell>
                 <TableHeadCell>Nombre del grupo</TableHeadCell>
                 <TableHeadCell>Id.</TableHeadCell>
+                <TableHeadCell> Inscritos </TableHeadCell>
                 <TableHeadCell class="text-center">Num. alumnos</TableHeadCell>
+                <TableHeadCell> Porcentaje Activo </TableHeadCell>
                 <TableHeadCell/>
             </TableHead>
             <TableBody>
                 {#each pagedGroups as group, i}
                     <TableBodyRow>
-                        <TableBodyCell>{i + 1}</TableBodyCell>
+                        <TableBodyCell>{start+ i + 1}</TableBodyCell>
                         <TableBodyCell>{group.group_name}</TableBodyCell>
                         <TableBodyCell>
                             <Badge class="text-black bg-blue-300">{group.group_id}</Badge>
                         </TableBodyCell>
+                        <TableBodyCell class="text-center">{group.signed_ups || 0}</TableBodyCell>
                         <TableBodyCell class="text-center">{getNumberOfStudents(group.group_id)}</TableBodyCell>
+                        <TableBodyCell class="text-center">{
+                            group.signed_ups ? 
+                                Math.round((getNumberOfStudents(group.group_id) / group.signed_ups) * 100) + '%' 
+                                : '0%'
+                        }
+                        </TableBodyCell>
                         <TableBodyCell>
                             <DotsHorizontalOutline size="sm" class="hover:cursor-pointer"/>
                             <Dropdown>
@@ -577,5 +609,19 @@
 
     .pages-select-conatiner {
         width: 6%;
+    }
+
+    .table-search-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0rem;
+    }
+
+    .table-search-container .descriptive {
+        font-size: 1rem;
+        color: #4B5563;
+        margin-top: 1rem;
+        margin-right: 1rem;
     }
 </style>
