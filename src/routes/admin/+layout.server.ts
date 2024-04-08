@@ -31,7 +31,8 @@ export const load = async () => {
                     group_name: allGroupsData[group_uid].group_name,
                     professors_ids: [],
                     levels: allGroupsData[group_uid].levels,
-                    signed_ups: allGroupsData[group_uid].signed_ups
+                    signed_ups: allGroupsData[group_uid].signed_ups,
+                    type: allGroupsData[group_uid].type,
                 }
             }
         } else {

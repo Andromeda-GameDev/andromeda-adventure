@@ -321,6 +321,52 @@
         }
     }
 
+    let sortColumn = '';
+    let sortDirection = 'asc';  
+
+    function handleSort(column : string) {
+        if (sortColumn === column) {
+            sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            sortColumn = column;
+            sortDirection = 'asc';
+        }
+    }
+
+    $ : {
+        filteredGroups = groups.filter(group => 
+            group.group_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            group.group_id.toString().toLowerCase().includes(searchTerm.toLowerCase())
+        );
+
+        if (sortColumn === 'signed_ups') {
+            filteredGroups.sort((a, b) => {
+                const signedUpsA = a.signed_ups || 0;
+                const signedUpsB = b.signed_ups || 0;
+                return sortDirection === 'asc' ? signedUpsA - signedUpsB : signedUpsB - signedUpsA;
+            });
+        } else if (sortColumn === 'type') {
+            filteredGroups.sort((a, b) => {
+                const typeA = a.type || 'otro';
+                const typeB = b.type || 'otro';
+
+                if (typeA === 'play' && typeB !== 'play') {
+                    return sortDirection === 'asc' ? -1 : 1;
+                } else if (typeA !== 'play' && typeB === 'play') {
+                    return sortDirection === 'asc' ? 1 : -1;
+                } else if (typeA === 'control' && typeB !== 'control') {
+                    return sortDirection === 'asc' ? -1 : 1;
+                } else if (typeA !== 'control' && typeB === 'control') {
+                    return sortDirection === 'asc' ? 1 : -1;
+                } else {
+                    return 0;
+                }
+            });
+        }
+
+        currentPage = Math.max(1, Math.min(currentPage, Math.ceil(filteredGroups.length / parseInt(itemsPerPage))));
+    }
+
 </script>
 
 <div class="main-container">
@@ -340,9 +386,10 @@
                 <TableHeadCell>Num. </TableHeadCell>
                 <TableHeadCell>Nombre del grupo</TableHeadCell>
                 <TableHeadCell>Id.</TableHeadCell>
-                <TableHeadCell> Inscritos </TableHeadCell>
+                <TableHeadCell on:click={() => handleSort('signed_ups')}> Inscritos </TableHeadCell>
                 <TableHeadCell class="text-center">Num. alumnos</TableHeadCell>
                 <TableHeadCell> Porcentaje Activo </TableHeadCell>
+                <TableHeadCell on:click={() => handleSort('type')}> Tipo </TableHeadCell>
                 <TableHeadCell/>
             </TableHead>
             <TableBody>
@@ -360,6 +407,15 @@
                                 Math.round((getNumberOfStudents(group.group_id) / group.signed_ups) * 100) + '%' 
                                 : '0%'
                         }
+                        </TableBodyCell>
+                        <TableBodyCell>
+                            {#if group.type === 'control'}
+                                <Badge class="text-black bg-red-300">Control</Badge>
+                            {:else if group.type === 'play'}
+                                <Badge class="text-black bg-green-300">Juega</Badge>
+                            {:else}
+                                <Badge class="text-black bg-purple-300">Otro</Badge>
+                            {/if}
                         </TableBodyCell>
                         <TableBodyCell>
                             <DotsHorizontalOutline size="sm" class="hover:cursor-pointer"/>

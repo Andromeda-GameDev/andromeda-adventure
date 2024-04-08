@@ -5,6 +5,7 @@ export interface Group {
     professors_ids: string[];
     levels: Record<string, boolean>;
     signed_ups?: number;
+    type?: string;
 }
 
 export interface Student {
