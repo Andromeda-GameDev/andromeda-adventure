@@ -1,6 +1,6 @@
 import { writable } from "svelte/store";
 import { authtest } from '$lib/firebase/firebase';
-import { deleteUser, signInWithPopup } from "firebase/auth";
+import { deleteUser, signInWithPopup, signInWithRedirect } from "firebase/auth";
 import { GoogleAuthProvider, sendPasswordResetEmail, signOut, updatePassword, signInWithEmailAndPassword } from "firebase/auth";
 import { getDatabase, ref, get, remove, set, update } from "firebase/database";
 
@@ -116,7 +116,7 @@ export const validateUser = async (uid: string) => {
 export const authHandlers = {
     signInWithPopup: async () => {
         const provider = new GoogleAuthProvider();
-        await signInWithPopup(authtest, provider);
+        await signInWithRedirect(authtest, provider);
     },
 
     signInWithEmail: async (email: string, password: string) => {
