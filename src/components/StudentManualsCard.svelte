@@ -78,7 +78,7 @@
         <div class="apple-side">
             <svelte:component this={AppleSolid} class="h-12 w-12"/>
             <p class="system-name">Apple</p>
-            <A href="https://drive.google.com/file/d/1OscZynpgVtbr_7WZWQvL30VLDwt1vVLp/view" class="text-blue-600 hover:text-blue-400 mt-6" target="_blank">Guia de instalación</A>
+            <A href="https://drive.google.com/file/d/15sldMEFfrooq4YBFLMDjqu3yLjFu0DkI/view?usp=drivesdk" class="text-blue-600 hover:text-blue-400 mt-6" target="_blank">Guia de instalación</A>
             <Button class="bg-blue-600 hover:bg-blue-400 text-white font-bold px-3 mt-10" disabled target="_blank">
                 Descargar
                 <svelte:component this={ArrowDownToBracketOutline} class="ml-5" size="md"/>
