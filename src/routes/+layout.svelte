@@ -39,7 +39,8 @@
 								group_id: null
 							}
 						});
-
+						
+						window.location.reload();
 						return;
 						
 					} else if(professorRegex.test(user.email!)){
