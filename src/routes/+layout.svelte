@@ -104,21 +104,33 @@
 
 				
 			} else {
-				console.log('User is not logged in');
+				authStore.update((currentUser) => {
+					return {
+						...currentUser,
+						isLogged: false,
+						uid: null,
+						email: null,
+						role: null,
+						group_id: null,
+						validated: null,
+						status: null,
+					};
+				});
 			}
-
-			if(browser){
-				if(!$authStore.isLogged && window.location.pathname !== '/'){
-					window.location.href = '/';
-				} 
-			}
-
 		});
 
 		return () => {
 			unsubscribe();
-		}
+		};
 	});
+
+	$: if (browser && $authStore.isLogged) {
+		if ($authStore.role === 'student' && window.location.pathname !== '/student') {
+			window.location.href = '/student';
+		} else if ($authStore.role === 'professor' && window.location.pathname !== '/professor') {
+			window.location.href = '/professor';
+		}
+  	}
 
 
 </script>

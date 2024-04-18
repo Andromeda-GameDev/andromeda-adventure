@@ -243,7 +243,9 @@
         />
     </div>
     <div class="modal-footer">
-        <Button color="red" size="sm" outline>Cancelar</Button>
+        <Button color="red" size="sm" outline 
+            on:click={() => updateGroupModal = false}
+        >Cancelar</Button>
         <Button color="blue" size="sm" on:click={() => updateGroup(student_uuid, newGroup)}>Actualizar</Button>
     </div>
 </Modal>
