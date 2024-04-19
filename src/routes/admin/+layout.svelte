@@ -69,27 +69,31 @@
     $: activeUrl = $page.url.pathname;
     let activeClass = 'flex items-center p-2 text-base font-normal bg-green-200 dark:bg-green-700 rounded-lg dark:text-white hover:bg-green-100 dark:hover:bg-gray-700 border-r-4 border-green-500';
     let nonActiveClass = 'flex items-center p-2 text-base font-normal text-black-900 rounded-lg dark:text-white hover:bg-green-100 dark:hover:bg-green-700';
+
+    let isSidebarOpen = true;
     
 </script>
 
 
 <div class="main-container">
-    <div class="sidebar">
+    <div class="sidebar" class:open={isSidebarOpen}>
         <div class="sidebar-content">
             <div class="sidebar-header-content">
-                <img src="/planet_andromeda_logo.png" alt="Logo" style="width: 50px; height: auto; margin-right: 1rem;"/>
-                <p>Andromeda</p>
+                <img src="/planet_andromeda_logo.png" alt="Logo" style="width: 30px; height: auto; margin-right: 1rem;"/>
+                {#if isSidebarOpen}
+                  <p class="text-lg">Andromeda</p>
+                {/if}
             </div>
             <div class="sidebar-container">
                 <Sidebar {activeUrl} {activeClass} {nonActiveClass} class="w-full">
                     <SidebarWrapper class="bg-white">
                         <SidebarGroup class="bg-white space-y-3">
-                            <SidebarItem label="Inicio" href="/admin">
+                            <SidebarItem label={isSidebarOpen ? 'Inicio' : ''} href="/admin">
                                 <svelte:fragment slot="icon">
                                     <GridSolid/>
                                 </svelte:fragment>
                             </SidebarItem>
-                            <SidebarItem label="Estudiantes" href="/admin/students">
+                            <SidebarItem label={isSidebarOpen ? 'Estudiantes' : ''} href="/admin/students">
                                 <svelte:fragment slot="icon">
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
                                         <path d="M11.7 2.805a.75.75 0 0 1 .6 0A60.65 60.65 0 0 1 22.83 8.72a.75.75 0 0 1-.231 1.337 49.948 49.948 0 0 0-9.902 3.912l-.003.002c-.114.06-.227.119-.34.18a.75.75 0 0 1-.707 0A50.88 50.88 0 0 0 7.5 12.173v-.224c0-.131.067-.248.172-.311a54.615 54.615 0 0 1 4.653-2.52.75.75 0 0 0-.65-1.352 56.123 56.123 0 0 0-4.78 2.589 1.858 1.858 0 0 0-.859 1.228 49.803 49.803 0 0 0-4.634-1.527.75.75 0 0 1-.231-1.337A60.653 60.653 0 0 1 11.7 2.805Z" />
@@ -98,7 +102,7 @@
                                       </svg>                                                                          
                                 </svelte:fragment>
                             </SidebarItem>
-                            <SidebarItem label="Profesores" href="/admin/professors">
+                            <SidebarItem label={isSidebarOpen ? 'Profesores' : ''} href="/admin/professors">
                                 <svelte:fragment slot="icon">
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
                                         <path fill-rule="evenodd" d="M8.25 6.75a3.75 3.75 0 1 1 7.5 0 3.75 3.75 0 0 1-7.5 0ZM15.75 9.75a3 3 0 1 1 6 0 3 3 0 0 1-6 0ZM2.25 9.75a3 3 0 1 1 6 0 3 3 0 0 1-6 0ZM6.31 15.117A6.745 6.745 0 0 1 12 12a6.745 6.745 0 0 1 6.709 7.498.75.75 0 0 1-.372.568A12.696 12.696 0 0 1 12 21.75c-2.305 0-4.47-.612-6.337-1.684a.75.75 0 0 1-.372-.568 6.787 6.787 0 0 1 1.019-4.38Z" clip-rule="evenodd" />
@@ -106,19 +110,19 @@
                                       </svg>                                                                            
                                 </svelte:fragment>
                             </SidebarItem>
-                            <SidebarItem label="Grupos" href="/admin/groups">
+                            <SidebarItem label={isSidebarOpen ? 'Grupos' : ''} href="/admin/groups">
                                 <svelte:fragment slot="icon">
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
                                         <path fill-rule="evenodd" d="M1.5 7.125c0-1.036.84-1.875 1.875-1.875h6c1.036 0 1.875.84 1.875 1.875v3.75c0 1.036-.84 1.875-1.875 1.875h-6A1.875 1.875 0 0 1 1.5 10.875v-3.75Zm12 1.5c0-1.036.84-1.875 1.875-1.875h5.25c1.035 0 1.875.84 1.875 1.875v8.25c0 1.035-.84 1.875-1.875 1.875h-5.25a1.875 1.875 0 0 1-1.875-1.875v-8.25ZM3 16.125c0-1.036.84-1.875 1.875-1.875h5.25c1.036 0 1.875.84 1.875 1.875v2.25c0 1.035-.84 1.875-1.875 1.875h-5.25A1.875 1.875 0 0 1 3 18.375v-2.25Z" clip-rule="evenodd" />
                                       </svg>                                      
                                 </svelte:fragment>
                             </SidebarItem>
-                            <SidebarItem label="Estadísticas" href="/admin/statistics">
+                            <SidebarItem label={isSidebarOpen ? 'Estadísticas' : ''} href="/admin/statistics">
                                 <svelte:fragment slot="icon">
                                     <ChartLineUpSolid/>
                                 </svelte:fragment>
                             </SidebarItem>
-                            <SidebarItem label="Ajustes" href="/admin/settings">
+                            <SidebarItem label={isSidebarOpen ? 'Ajustes' : ''} href="/admin/settings">
                                 <svelte:fragment slot="icon">
                                     <UserSettingsSolid/>
                                 </svelte:fragment>
@@ -127,6 +131,19 @@
                     </SidebarWrapper>
                 </Sidebar>
             </div>
+            <div class="sidebar-footer">
+                <button on:click={() => isSidebarOpen = !isSidebarOpen}>
+                  {#if isSidebarOpen}
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
+                      <path fill-rule="evenodd" d="M15.75 19.5L8.25 12l7.5-7.5" clip-rule="evenodd" />
+                    </svg>
+                  {:else}
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
+                      <path fill-rule="evenodd" d="M8.25 4.5l7.5 7.5-7.5 7.5" clip-rule="evenodd" />
+                    </svg>
+                  {/if}
+                </button>
+              </div>
         </div>
     </div>
     <div class="content">
@@ -157,9 +174,28 @@
     }
 
     .sidebar {
-        width: 15%;
+        width: 5%;
         height: 100%;
         background-color: white;
+        transition: width 0.3s ease;
+    }
+
+    .sidebar.open {
+        width: 10%;
+    }
+
+    .sidebar-footer {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 1rem;
+    }
+
+    .sidebar-footer button {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #1dcd63;
     }
 
     .sidebar-content {

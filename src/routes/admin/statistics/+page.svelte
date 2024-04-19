@@ -435,6 +435,25 @@ let downloadSelectionModal = false;
 let selectedGroupsCheckbox: string[] = [];
 let selectedGroupsCheckboxTiming: string[] = [];
 
+let showFJ24Only = false;
+
+$ : {
+        if (selectedGroup === 'General') {
+            filteredStudents = $Students.filter(student => 
+                (student.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                student.lastName.toLowerCase().includes(searchTerm.toLowerCase())) &&
+                (!showFJ24Only || $Groups.find(group => group.group_id === student.group_id)?.group_name.includes('FJ24'))
+            );
+        } else {
+            filteredStudents = $Students.filter(student => 
+                (student.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                student.lastName.toLowerCase().includes(searchTerm.toLowerCase())) && 
+                student.group_id === selectedGroup &&
+                (!showFJ24Only || $Groups.find(group => group.group_id === student.group_id)?.group_name.includes('FJ24'))
+            );
+        }
+    }
+
     
 </script>
 
@@ -445,6 +464,9 @@ let selectedGroupsCheckboxTiming: string[] = [];
         </div>
         <div class="flex-grow"></div>
         <div class="filter-container">
+            <div class="flex items-center">
+                <Checkbox bind:checked={showFJ24Only}>Mostrar solo FJ24</Checkbox>
+            </div>
             <Select id="groupSelect" name="groupSelect" placeholder="Grupos" bind:value={selectedGroup}>
                 <option selected value="General"> General </option>
                 {#each professorGroups as group (group.group_id)}

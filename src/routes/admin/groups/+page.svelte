@@ -1,8 +1,8 @@
 <script lang="ts">
     import type { Group, Student, Professor } from '../../../types';
     import { Groups, Students, Professors } from '../../../stores/adminData';
-    import { Table, TableBody, TableBodyCell, TableHead, TableBodyRow, TableHeadCell, Badge, Input, Dropdown, DropdownDivider, DropdownItem, Select, TableSearch, Modal, Button, Checkbox, Search } from 'flowbite-svelte';
-    import { DotsHorizontalOutline, TrashBinSolid, ArrowLeftOutline, ArrowRightOutline, SearchSolid, PlusSolid, EditOutline} from 'flowbite-svelte-icons';
+    import { Table, TableBody, TableBodyCell, TableHead, TableBodyRow, TableHeadCell, Badge, Input, Dropdown, DropdownDivider, DropdownItem, Select, TableSearch, Modal, Button, Checkbox, Search, Tooltip } from 'flowbite-svelte';
+    import { DotsHorizontalOutline, TrashBinSolid, ArrowLeftOutline, ArrowRightOutline, SearchSolid, PlusSolid, EditOutline, FilterSolid} from 'flowbite-svelte-icons';
     import Alert from '../../../components/Alert.svelte';
     import { createGroup, addProffessorsToGroup, deleteProfessorFromGroup, deleteStudentFromGroup, deleteGroup, updateGroupName} from '../../../api/Admin/groups';
 
@@ -307,18 +307,11 @@
 
     let totalSignedUpStudents: number = 0;
     let totalStudentsInFilteredGroups: number = 0;
-    let totalPercentageActive: number = 0;
-
+    
 
     $ : {
         totalSignedUpStudents = filteredGroups.reduce((total, group) => total + (group.signed_ups || 0), 0);
         totalStudentsInFilteredGroups = filteredGroups.reduce((total, group) => total + getNumberOfStudents(group.group_id), 0);
-
-        if (totalSignedUpStudents > 0) {
-            totalPercentageActive = parseFloat(((totalStudentsInFilteredGroups / totalSignedUpStudents) * 100).toFixed(2));
-        } else {
-            totalPercentageActive = 0;
-        }
     }
 
     let sortColumn = '';
@@ -335,8 +328,9 @@
 
     $ : {
         filteredGroups = groups.filter(group => 
-            group.group_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            group.group_id.toString().toLowerCase().includes(searchTerm.toLowerCase())
+            (group.group_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            group.group_id.toString().toLowerCase().includes(searchTerm.toLowerCase())) &&
+            (tagFilter === 'all' || group.type === tagFilter)
         );
 
         if (sortColumn === 'signed_ups') {
@@ -364,8 +358,55 @@
             });
         }
 
+        if (sortWord === 'jugando') {
+            filteredGroups.sort((a, b) => {
+                const numJugandoA = getNumberOfStudentsPlayingLevel2(a.group_id);
+                const numJugandoB = getNumberOfStudentsPlayingLevel2(b.group_id);
+                console.log(`Group ${a.group_id}: ${numJugandoA}, Group ${b.group_id}: ${numJugandoB}`);
+                return numJugandoB - numJugandoA;
+            });
+        }
+
         currentPage = Math.max(1, Math.min(currentPage, Math.ceil(filteredGroups.length / parseInt(itemsPerPage))));
     }
+
+    let filterLevel1 = 'all';
+    let filterLevel2 = 'all';
+
+    let filteredStudents: any = [];
+
+    $: {
+        filteredStudents = students.filter(student => 
+            student.group_id === currentGroupID &&
+            (filterLevel1 === 'all' || (filterLevel1 === 'completed' && student.progress['level_1']) || (filterLevel1 === 'uncompleted' && !student.progress['level_1'])) &&
+            (filterLevel2 === 'all' || (filterLevel2 === 'completed' && student.progress['level_2']) || (filterLevel2 === 'uncompleted' && !student.progress['level_2']))
+        );
+
+        filteredGroups = groups.filter(group => 
+            (group.group_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            group.group_id.toString().toLowerCase().includes(searchTerm.toLowerCase())) &&
+            (tagFilter === 'all' || group.type === tagFilter)
+        );
+    }
+
+    let tagFilter = 'all';
+
+    function getNumberOfStudentsPlayingLevel2(group_id: string): number {
+        let studentsPlayingLevel2 = students.filter(student => student.group_id === group_id && student.progress['level_2']);
+        return studentsPlayingLevel2.length;
+    }
+
+    function calculatePercentagePlaying(group_id: string): number {
+        let totalStudents = getNumberOfStudents(group_id);
+        let studentsPlayingLevel2 = getNumberOfStudentsPlayingLevel2(group_id);
+        if (totalStudents > 0) {
+        return Math.round((studentsPlayingLevel2 / totalStudents) * 100);
+        } else {
+        return 0;
+        }
+    }
+
+    let sortWord = '';
 
 </script>
 
@@ -378,25 +419,45 @@
         <div class="table-search-container">
             <TableSearch bind:inputValue={searchTerm} placeholder="Busca un grupo por nombre o id" divClass='overflow-x-auto sm:rounded-lg'/>
             <div class="descriptive">
-                Total Inscritos: {totalSignedUpStudents} | Total Alumnos: {totalStudentsInFilteredGroups} | Porcentaje Activo: {totalPercentageActive}%
+                Total Inscritos: {filteredGroups.reduce((total, group) => total + (group.signed_ups || 0), 0)} | 
+                Total Alumnos: {filteredGroups.reduce((total, group) => total + getNumberOfStudents(group.group_id), 0)} | 
+                Usuarios Jugando: {students.filter(student => student.progress['level_2'] && filteredGroups.some(group => group.group_id === student.group_id)).length} | 
+                Porcentaje Jugando: ({(students.filter(student => student.progress['level_2'] && filteredGroups.some(group => group.group_id === student.group_id)).length / filteredGroups.reduce((total, group) => total + getNumberOfStudents(group.group_id), 0) * 100).toFixed(2)} %)
             </div>
         </div>
-        <Table shadow>
+        <Table shadow divClass="min-h-5">
             <TableHead class="bg-sky-300">
                 <TableHeadCell>Num. </TableHeadCell>
-                <TableHeadCell>Nombre del grupo</TableHeadCell>
+                <TableHeadCell class="text-left">Nombre del grupo</TableHeadCell>
                 <TableHeadCell>Id.</TableHeadCell>
                 <TableHeadCell on:click={() => handleSort('signed_ups')}> Inscritos </TableHeadCell>
                 <TableHeadCell class="text-center">Num. alumnos</TableHeadCell>
-                <TableHeadCell> Porcentaje Activo </TableHeadCell>
-                <TableHeadCell on:click={() => handleSort('type')}> Tipo </TableHeadCell>
+                <TableHeadCell class="text-center"> Porcentaje Activo </TableHeadCell>
+                <TableHeadCell class="text-center hover:cursor-pointer" on:click={() => sortWord = sortWord === 'jugando' ? '' : 'jugando'}>Num. jugando</TableHeadCell>
+                <TableHeadCell class="text-center">Porcentaje jugando</TableHeadCell>
+                <TableHeadCell>
+                    <div class="flex items-center">
+                      Tipo
+                      <Button variant="outlined" size="xs" class="bg-transparent hover:bg-blue-400 ml-2">
+                        <FilterSolid size="sm"/>
+                      </Button>
+                      <Dropdown class="w-48">
+                        <DropdownItem on:click={() => tagFilter = 'all'}>Todos</DropdownItem>
+                        <DropdownDivider />
+                        <DropdownItem on:click={() => tagFilter = 'play'}>Juega</DropdownItem>
+                        <DropdownItem on:click={() => tagFilter = 'control'}>Control</DropdownItem>
+                        <DropdownItem on:click={() => tagFilter = 'otro'}>Otro</DropdownItem>
+                      </Dropdown>
+                    </div>
+                  </TableHeadCell>
                 <TableHeadCell/>
             </TableHead>
             <TableBody>
                 {#each pagedGroups as group, i}
                     <TableBodyRow>
-                        <TableBodyCell>{start+ i + 1}</TableBodyCell>
-                        <TableBodyCell>{group.group_name}</TableBodyCell>
+                        <!-- reduce space between columns -->
+                        <TableBodyCell tdClass="px-4">{start+ i + 1}</TableBodyCell>
+                        <TableBodyCell tdClass="px-5">{group.group_name}</TableBodyCell>
                         <TableBodyCell>
                             <Badge class="text-black bg-blue-300">{group.group_id}</Badge>
                         </TableBodyCell>
@@ -408,6 +469,8 @@
                                 : '0%'
                         }
                         </TableBodyCell>
+                        <TableBodyCell class="text-center">{getNumberOfStudentsPlayingLevel2(group.group_id)}</TableBodyCell>
+                        <TableBodyCell class="text-center">{calculatePercentagePlaying(group.group_id)}%</TableBodyCell>
                         <TableBodyCell>
                             {#if group.type === 'control'}
                                 <Badge class="text-black bg-red-300">Control</Badge>
@@ -419,7 +482,7 @@
                         </TableBodyCell>
                         <TableBodyCell>
                             <DotsHorizontalOutline size="sm" class="hover:cursor-pointer"/>
-                            <Dropdown>
+                            <Dropdown placement="left">
                                 <DropdownItem 
                                     on:click={() => 
                                         {
@@ -560,29 +623,64 @@
     <hr class="solid">
     <div class="modal-students">
         <caption class="p-2 text-md font-semibold text-left text-gray-900 bg-white flex justify-between items-center">
-            Alumnos
-          </caption>
+            Completos Nivel 1: 
+            <span class="text-green-500">
+                {students.filter(student => student.group_id == currentGroupID && student.progress['level_1']).length}
+            </span> 
+            Completos Nivel 2: 
+            <span class="text-blue-500">
+                {students.filter(student => student.group_id == currentGroupID && student.progress['level_2']).length}
+            </span>
+            <Button variant="outlined" size="xs" class="bg-blue-500 hover:bg-blue-400">
+                <FilterSolid size="sm"/>
+            </Button>
+            <Dropdown class="w-48">
+                <DropdownItem on:click={() => { filterLevel1 = 'all'; filterLevel2 = 'all'; }}>Sin Filtro</DropdownItem>
+                <DropdownDivider />
+                <DropdownItem on:click={() => filterLevel1 = 'all'}>Todos - Level 1</DropdownItem>
+                <DropdownItem on:click={() => filterLevel1 = 'completed'}>Completado - Nivel 1</DropdownItem>
+                <DropdownItem on:click={() => filterLevel1 = 'uncompleted'}>Incompleto- Nivel 1</DropdownItem>
+                <DropdownDivider />
+                <DropdownItem on:click={() => filterLevel2 = 'all'}>Todos - Level 2</DropdownItem>
+                <DropdownItem on:click={() => filterLevel2 = 'completed'}>Completado - Nivel 2</DropdownItem>
+                <DropdownItem on:click={() => filterLevel2 = 'uncompleted'}>Incompleto - Nivel 2</DropdownItem>
+              </Dropdown>
+        </caption>
         <Table shadow>
             <TableHead class="bg-green-300">
                 <TableHeadCell>Nombre</TableHeadCell>
                 <TableHeadCell>Correo</TableHeadCell>
+                <TableHeadCell>Nivel 1</TableHeadCell>
+                <TableHeadCell>Nivel 2</TableHeadCell>
                 <TableHeadCell/>
             </TableHead>
             <TableBody>
-                {#each students as student}
-                    {#if student.group_id == currentGroupID}
-                        <TableBodyRow>
-                            <TableBodyCell>{student.name + ' ' + student.lastName}</TableBodyCell>
-                            <TableBodyCell>{student.email}</TableBodyCell>
-                            <TableBodyCell>
-                                <Button variant="outlined" size="xs" class="bg-red-500 hover:bg-red-400"
-                                    on:click={() => handleDeleteStudentFromGroup(student.uuid || '')}
-                                >Eliminar</Button>
-                            </TableBodyCell>
-                        </TableBodyRow>
-                    {/if}
+                {#each filteredStudents as student}
+                  <TableBodyRow>
+                    <TableBodyCell>{student.name + ' ' + student.lastName}</TableBodyCell>
+                    <TableBodyCell>{student.email}</TableBodyCell>
+                    <TableBodyCell>
+                      {#if student.progress['level_1']}
+                        <Badge color="green">Completo</Badge>
+                      {:else}
+                        <Badge color="red">Incompleto</Badge>
+                      {/if}
+                    </TableBodyCell>
+                    <TableBodyCell>
+                      {#if student.progress['level_2']}
+                        <Badge color="green">Completo</Badge>
+                      {:else}
+                        <Badge color="red">Incompleto</Badge>
+                      {/if}
+                    </TableBodyCell>
+                    <TableBodyCell>
+                      <Button variant="outlined" size="xs" class="bg-red-500 hover:bg-red-400"
+                        on:click={() => handleDeleteStudentFromGroup(student.uuid || '')}
+                      >Eliminar</Button>
+                    </TableBodyCell>
+                  </TableBodyRow>
                 {/each}
-            </TableBody>
+              </TableBody>
         </Table>
     </div>
 </Modal>
@@ -643,6 +741,8 @@
     .table-container{
         padding-left: 2rem;
         padding-right: 2rem;
+        overflow-y: auto;
+        overflow-x: auto;
     }
 
     .footer-container {
